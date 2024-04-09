@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from src.api import auth
 from enum import Enum
-
+import sqlalchemy
+from src import database as db
 router = APIRouter(
     prefix="/carts",
     tags=["cart"],
@@ -85,6 +86,16 @@ def post_visits(visit_id: int, customers: list[Customer]):
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ """
+    sql_insert_statement = """
+        INSERT INTO global_inventory (num_green_potions, num_green_ml, gold)
+        VALUES (0, 0, 0)
+    """
+
+    # Execute SQL statement
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text(sql_insert_statement))
+
+
     return {"cart_id": 1}
 
 
@@ -95,8 +106,20 @@ class CartItem(BaseModel):
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
-
+    sql_update_statement = """
+        UPDATE global_inventory 
+        SET quantity = :quantity
+        WHERE cart_id = :cart_id AND item_sku = :item_sku
+    """
+    # Execute SQL statement
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text(sql_update_statement), 
+                           quantity=cart_item.quantity,
+                           cart_id=cart_id,
+                           item_sku=item_sku)
     return "OK"
+
+
 
 
 class CartCheckout(BaseModel):
@@ -105,5 +128,15 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-
+    sql_update_statement = """
+        UPDATE global_inventory 
+        SET gold = gold + :new_gold,
+            num_green_potions = num_green_potions - :potion_subtracted
+        WHERE <some_condition>  -- Replace <some_condition> with your desired condition
+    """
+    # Execute SQL statement
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text(sql_update_statement), 
+                           new_gold=50,  # Adjust this value based on your requirements
+                           potion_subtracted=1)  # Adjust this value based on your requirements
     return {"total_potions_bought": 1, "total_gold_paid": 50}
