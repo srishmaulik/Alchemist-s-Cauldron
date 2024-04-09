@@ -128,15 +128,15 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-    sql_update_statement = """
+    new_gold = 50  # Adjust this value based on your requirements
+    potion_subtracted = 1  # Adjust this value based on your requirements
+
+    sql_update_statement = f"""
         UPDATE global_inventory 
-        SET gold = gold + :new_gold,
-            num_green_potions = num_green_potions - :potion_subtracted
-        WHERE <some_condition>  -- Replace <some_condition> with your desired condition
+        SET gold = gold + {new_gold},
+            num_green_potions = num_green_potions - {potion_subtracted}
     """
     # Execute SQL statement
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(sql_update_statement), 
-                           new_gold=50,  # Adjust this value based on your requirements
-                           potion_subtracted=1)  # Adjust this value based on your requirements
+        connection.execute(sqlalchemy.text(sql_update_statement)) 
     return {"total_potions_bought": 1, "total_gold_paid": 50}
