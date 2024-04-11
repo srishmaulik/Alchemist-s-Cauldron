@@ -54,9 +54,10 @@ def get_bottle_plan():
                 
                 # Add the plan for bottling green potions to the list
                 plan.append({
-                    "potion_type": [0,1,0,0],  # Assuming green potions are type 0
+                    "potion_type": [0,100,0,0],  # Assuming green potions are type 0
                     "quantity": quantity
                 })
+                break
     return plan
 
 if __name__ == "__main__":

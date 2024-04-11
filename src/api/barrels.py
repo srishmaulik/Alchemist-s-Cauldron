@@ -50,7 +50,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             # Example: Always mix all available green ml if any exists
 
             # Check if the inventory of green ml is less than 10
-            if num_green_ml < 10:
+    if num_green_ml < 10:
                 # If inventory is less than 10, create a purchase plan for a new small green potion barrel
                 purchase_plan.append({
                     "sku": "SMALL_GREEN_BARREL",
