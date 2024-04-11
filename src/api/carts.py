@@ -86,14 +86,10 @@ def post_visits(visit_id: int, customers: list[Customer]):
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ """
-    sql_insert_statement = """
-        INSERT INTO global_inventory (num_green_potions, num_green_ml, gold)
-        VALUES (0, 0, 0)
-    """
-
+   
+ 
     # Execute SQL statement
-    with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(sql_insert_statement))
+    
 
 
     return {"cart_id": 1}
