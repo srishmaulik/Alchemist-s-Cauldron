@@ -124,7 +124,7 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-    new_gold = 50  # Adjust this value based on your requirements
+    new_gold = 100  # Adjust this value based on your requirements
     potion_subtracted = 1  # Adjust this value based on your requirements
     
     sql_update_statement = f"""
