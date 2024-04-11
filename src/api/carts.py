@@ -126,13 +126,17 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     new_gold = 50  # Adjust this value based on your requirements
     potion_subtracted = 1  # Adjust this value based on your requirements
-
+    
     sql_update_statement = f"""
         UPDATE global_inventory 
         SET gold = gold + {new_gold},
             num_green_potions = num_green_potions - {potion_subtracted}
     """
+    
     # Execute SQL statement
+    
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(sql_update_statement)) 
-    return {"total_potions_bought": 1, "total_gold_paid": 50}
+       
+   
+    return {"total_potions_bought": 1, "total_gold_paid": 100}
