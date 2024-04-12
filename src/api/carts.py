@@ -130,6 +130,13 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         num_green = green_result.fetchone()[0]
         num_red = red_result.fetchone()[0]
         num_blue = blue_result.fetchone()[0]  # Access blue inventory
+        if num_green<0:
+            sql_update_statement4 = f"""
+                UPDATE global_inventory
+                SET 
+                    num_green_potions = num_green_potions + {potion_subtracted}
+            """
+            connection.execute(sqlalchemy.text(sql_update_statement4))
         if num_green>0:
             total_gold+=100
             total_potions_subtracted+=1
