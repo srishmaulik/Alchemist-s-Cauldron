@@ -98,21 +98,11 @@ def create_cart(new_cart: Customer):
 class CartItem(BaseModel):
     quantity: int
 
-
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
-    sql_update_statement = """
-        UPDATE global_inventory 
-        SET quantity = :quantity
-        WHERE cart_id = :cart_id AND item_sku = :item_sku
-    """
-    # Execute SQL statement
-    with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(sql_update_statement), 
-                           quantity=cart_item.quantity,
-                           cart_id=cart_id,
-                           item_sku=item_sku)
+   
+                           
     return "OK"
 
 
@@ -126,17 +116,48 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     new_gold = 100  # Adjust this value based on your requirements
     potion_subtracted = 1  # Adjust this value based on your requirements
-    
-    sql_update_statement = f"""
-        UPDATE global_inventory 
-        SET gold = gold + {new_gold},
-            num_green_potions = num_green_potions - {potion_subtracted}
-    """
-    
-    # Execute SQL statement
-    
+    total_potions_subtracted = 0
+    total_gold = 0
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(sql_update_statement)) 
-       
-   
-    return {"total_potions_bought": 1, "total_gold_paid": 100}
+        sql_green = "SELECT num_green_potions FROM global_inventory"
+        sql_red = "SELECT num_red_potions FROM global_inventory"
+        sql_blue = "SELECT num_blue_potions FROM global_inventory"  # Add query for blue
+
+        green_result = connection.execute(sqlalchemy.text(sql_green))
+        red_result = connection.execute(sqlalchemy.text(sql_red))
+        blue_result = connection.execute(sqlalchemy.text(sql_blue))  # Execute new query
+
+        num_green = green_result.fetchone()[0]
+        num_red = red_result.fetchone()[0]
+        num_blue = blue_result.fetchone()[0]  # Access blue inventory
+        if num_green>0:
+            total_gold+=100
+            total_potions_subtracted+=1
+            sql_update_statement = f"""
+                UPDATE global_inventory
+                SET gold = gold + {new_gold},
+                    num_green_potions = num_green_potions - {potion_subtracted}
+            """
+
+            connection.execute(sqlalchemy.text(sql_update_statement))
+        if num_red>0:
+            total_gold+=100
+            total_potions_subtracted+=1
+            sql_update_statement2 = f"""
+                UPDATE global_inventory
+                SET gold = gold + {new_gold},
+                    num_red_potions = num_red_potions - {potion_subtracted}
+            """
+            connection.execute(sqlalchemy.text(sql_update_statement2))
+        if num_blue>0:
+            total_gold+=100
+            total_potions_subtracted+=1
+            sql_update_statement3 = f"""
+                UPDATE global_inventory
+                SET gold = gold + {new_gold},
+                    num_blue_potions = num_blue_potions - {potion_subtracted}
+            """
+            connection.execute(sqlalchemy.text(sql_update_statement3))
+
+  
+    return {"total_potions_bought": total_potions_subtracted , "total_gold_paid":total_gold }
