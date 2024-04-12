@@ -26,11 +26,11 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         for barrel in barrels_delivered:
             potion_type = barrel.potion_type
 
-            if potion_type == [0, 100, 0, 0]:  # Check for green potion type
+            if potion_type == [0, 1, 0, 0]:  # Check for green potion type
                 sql_update_quantity = f"UPDATE global_inventory SET num_green_ml = num_green_ml + {barrel.ml_per_barrel * barrel.quantity}"
-            elif potion_type == [100, 0, 0, 0]:  # Check for red potion type
+            elif potion_type == [1, 0, 0, 0]:  # Check for red potion type
                 sql_update_quantity = f"UPDATE global_inventory SET num_red_ml = num_red_ml + {barrel.ml_per_barrel * barrel.quantity}"
-            elif potion_type == [0, 0, 100, 0]:  # Check for blue potion type (example)
+            elif potion_type == [0, 0, 1, 0]:  # Check for blue potion type (example)
                 sql_update_quantity = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml + {barrel.ml_per_barrel * barrel.quantity}"
             else:
             #     # Handle unexpected potion type (optional)
@@ -52,35 +52,43 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         sql_green_ml = "SELECT num_green_ml FROM global_inventory"
         sql_red_ml = "SELECT num_red_ml FROM global_inventory"
         sql_blue_ml = "SELECT num_blue_ml FROM global_inventory"  # Add query for blue
-
+        gold = "SELECT gold FROM global_inventory"
         green_result = connection.execute(sqlalchemy.text(sql_green_ml))
         red_result = connection.execute(sqlalchemy.text(sql_red_ml))
         blue_result = connection.execute(sqlalchemy.text(sql_blue_ml))  # Execute new query
-
+        gold_result = connection.execute(sqlalchemy.text(gold))
         num_green_ml = green_result.fetchone()[0]
         num_red_ml = red_result.fetchone()[0]
         num_blue_ml = blue_result.fetchone()[0]  # Access blue inventory
+        total_gold = gold_result.fetchone()[0]
 
-        if num_green_ml < 10:
-            # Purchase plan for green potion barrel
-            purchase_plan.append({
-                "sku": "SMALL_GREEN_BARREL",
-                "quantity": 1
-            })
-
-        if num_red_ml < 10:
-            # Purchase plan for red potion barrel
-            purchase_plan.append({
-                "sku": "SMALL_RED_BARREL",
-                "quantity": 1
-            })
-
-        if num_blue_ml < 10:  # Check for blue inventory
-            # Purchase plan for blue potion barrel (example)
-            purchase_plan.append({
-                "sku": "SMALL_BLUE_BARREL",  
-                "quantity": 1
-            })
+        for barrel in wholesale_catalog:
+            sql_update_gold= f"UPDATE global_inventory SET gold = gold - {barrel.price}"
+            if barrel.price < total_gold:
+                if barrel.sku == "SMALL_GREEN_BARREL":
+                    if num_green_ml < 10:
+                        # Purchase plan for green potion barrel
+                        purchase_plan.append({
+                            "sku": "SMALL_GREEN_BARREL",
+                            "quantity": barrel.quantity
+                        })
+                            
+                elif barrel.sku == "SMALL_RED_BARREL":
+                    if num_red_ml < 10:
+                        # Purchase plan for green potion barrel
+                        purchase_plan.append({
+                            "sku": "SMALL_RED_BARREL",
+                            "quantity": barrel.quantity
+                        })
+                elif barrel.sku == "SMALL_BLUE_BARREL":
+                    if num_blue_ml < 10:
+                        # Purchase plan for green potion barrel
+                        purchase_plan.append({
+                            "sku": "SMALL_BLUE_BARREL",
+                            "quantity": barrel.quantity
+                        })
+                connection.execute(sqlalchemy.text(sql_update_gold))
+            
 
 
     print(wholesale_catalog)
