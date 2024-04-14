@@ -64,11 +64,11 @@ def get_bottle_plan():
     # Initial logic: bottle all barrels into green potions.
         potion_recipes = [
                 # Green potion recipe (assuming type 0)
-                {"potion_type": [0, 100, 0, 0], "ml_per_potion": 100},
+                {"potion_type": [0, 100, 0, 0], "ml_per_potion": 50},
                 # Red potion recipe (assuming type 1)
-                {"potion_type": [100, 0, 0, 0], "ml_per_potion": 150},  # Adjust ml per potion
+                {"potion_type": [100, 0, 0, 0], "ml_per_potion": 50},  # Adjust ml per potion
                 # Blue potion recipe (assuming type 2)
-                {"potion_type": [0, 0, 100, 0], "ml_per_potion": 75},  # Adjust ml per potion
+                {"potion_type": [0, 0, 100, 0], "ml_per_potion": 50},  # Adjust ml per potion
             ]
         for recipe in potion_recipes:
             available_ml = num_green_ml if recipe["potion_type"] == [0, 100, 0, 0] else (  # Check potion type
