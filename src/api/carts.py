@@ -4,6 +4,8 @@ from src.api import auth
 from enum import Enum
 import sqlalchemy
 from src import database as db
+
+cart_dict = {}
 router = APIRouter(
     prefix="/carts",
     tags=["cart"],
@@ -101,7 +103,7 @@ class CartItem(BaseModel):
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
-   
+    cart_dict[cart_id] = [item_sku, cart_item.quantity]
                            
     return "OK"
 
@@ -114,57 +116,53 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-    new_gold = 100  # Adjust this value based on your requirements
-    potion_subtracted = 1  # Adjust this value based on your requirements
-    total_potions_subtracted = 0
-    total_gold = 0
+    sold_quantity = 0
+    gold_earned = 0
     with db.engine.begin() as connection:
-        sql_green = "SELECT num_green_potions FROM global_inventory"
-        sql_red = "SELECT num_red_potions FROM global_inventory"
-        sql_blue = "SELECT num_blue_potions FROM global_inventory"  # Add query for blue
+        for c_id, (item_sku, quantity) in cart_dict.items():
+            if c_id == cart_id:
+                if item_sku == "GREEN_POTION_0":
+                    sql_check_green = "SELECT num_green_potions FROM global_inventory"
+                    green_result = connection.execute(sqlalchemy.text(sql_check_green))
+                    num_green = green_result.fetchone()[0]
+                    
+                    if num_green >= quantity:
+                        sql_update_statement = f"""
+                            UPDATE global_inventory
+                            SET gold = gold + {100 * quantity},
+                                num_green_potions = num_green_potions - {quantity}
+                            
+                        """
+                        connection.execute(sqlalchemy.text(sql_update_statement))
+                        sold_quantity = quantity
+                        gold_earned = quantity * 100
+                elif item_sku == "RED_POTION_0":
+                    sql_check_red = "SELECT num_red_potions FROM global_inventory"
+                    red_result = connection.execute(sqlalchemy.text(sql_check_red))
+                    num_red = red_result.fetchone()[0]
+                    
+                    if num_red>= quantity:
+                        sql_update_statement = f"""
+                            UPDATE global_inventory
+                            SET gold = gold + {100 * quantity},
+                               num_red_potions = num_red_potions - {quantity}
+                        """
+                        connection.execute(sqlalchemy.text(sql_update_statement))
+                        sold_quantity = quantity
+                        gold_earned = quantity * 100
+                elif item_sku == "BLUE_POTION_0":
+                    sql_check_blue = "SELECT num_blue_potions FROM global_inventory"
+                    blue_result = connection.execute(sqlalchemy.text(sql_check_blue))
+                    num_blue = blue_result.fetchone()[0]
+                    if num_blue>= quantity:
+                        sql_update_statement = f"""
+                            UPDATE global_inventory
+                            SET gold = gold + {100 * quantity},
+                                num_blue_potions = num_blue_potions - {quantity}
+                        """
+                        connection.execute(sqlalchemy.text(sql_update_statement))
+                        sold_quantity = quantity
+                        gold_earned = quantity * 100
 
-        green_result = connection.execute(sqlalchemy.text(sql_green))
-        red_result = connection.execute(sqlalchemy.text(sql_red))
-        blue_result = connection.execute(sqlalchemy.text(sql_blue))  # Execute new query
 
-        num_green = green_result.fetchone()[0]
-        num_red = red_result.fetchone()[0]
-        num_blue = blue_result.fetchone()[0]  # Access blue inventory
-        if num_green<0:
-            sql_update_statement4 = f"""
-                UPDATE global_inventory
-                SET 
-                    num_green_potions = num_green_potions + {potion_subtracted}
-            """
-            connection.execute(sqlalchemy.text(sql_update_statement4))
-        if num_green>0:
-            total_gold+=100
-            total_potions_subtracted+=1
-            sql_update_statement = f"""
-                UPDATE global_inventory
-                SET gold = gold + {new_gold},
-                    num_green_potions = num_green_potions - {potion_subtracted}
-            """
-
-            connection.execute(sqlalchemy.text(sql_update_statement))
-        if num_red>0:
-            total_gold+=100
-            total_potions_subtracted+=1
-            sql_update_statement2 = f"""
-                UPDATE global_inventory
-                SET gold = gold + {new_gold},
-                    num_red_potions = num_red_potions - {potion_subtracted}
-            """
-            connection.execute(sqlalchemy.text(sql_update_statement2))
-        if num_blue>0:
-            total_gold+=100
-            total_potions_subtracted+=1
-            sql_update_statement3 = f"""
-                UPDATE global_inventory
-                SET gold = gold + {new_gold},
-                    num_blue_potions = num_blue_potions - {potion_subtracted}
-            """
-            connection.execute(sqlalchemy.text(sql_update_statement3))
-
-  
-    return {"total_potions_bought": total_potions_subtracted , "total_gold_paid":total_gold }
+    return {"total_potions_bought": sold_quantity , "total_gold_paid":gold_earned }
