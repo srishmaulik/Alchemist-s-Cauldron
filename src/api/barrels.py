@@ -64,7 +64,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         for barrel in wholesale_catalog:
             
-            if barrel.price < total_gold and total_gold>0:
+            if barrel.price*barrel.quantity < total_gold and total_gold>0:
                 if barrel.sku == "SMALL_GREEN_BARREL":
                     if num_green_ml < 10:
                         # Purchase plan for green potion barrel
