@@ -24,13 +24,13 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             # Update inventory based on potion type
             if potion_type == [0, 100, 0, 0]:  # Green potion
                 sql_update_inventory = f"UPDATE global_inventory SET num_green_potions = num_green_potions + {potion.quantity}"
-                sql_update_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.quantity*50}"
+                sql_update_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.quantity*30}"
             elif potion_type == [100, 0, 0, 0]:  # Red potion
                 sql_update_inventory = f"UPDATE global_inventory SET num_red_potions = num_red_potions + {potion.quantity}"
-                sql_update_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.quantity*50}"
+                sql_update_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.quantity*30}"
             elif potion_type == [0, 0, 100, 0]:  # Blue potion
                 sql_update_inventory = f"UPDATE global_inventory SET num_blue_potions = num_blue_potions + {potion.quantity}"
-                sql_update_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.quantity*50}"
+                sql_update_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.quantity*30}"
             else:
                 # Handle unexpected potion type (optional)
                 return {"error": "Invalid potion type"}
@@ -68,11 +68,11 @@ def get_bottle_plan():
     # Initial logic: bottle all barrels into green potions.
         potion_recipes = [
                 # Green potion recipe (assuming type 0)
-                {"potion_type": [0, 100, 0, 0], "ml_per_potion": 50},
+                {"potion_type": [0, 100, 0, 0], "ml_per_potion": 30},
                 # Red potion recipe (assuming type 1)
-                {"potion_type": [100, 0, 0, 0], "ml_per_potion": 50},  # Adjust ml per potion
+                {"potion_type": [100, 0, 0, 0], "ml_per_potion": 30},  # Adjust ml per potion
                 # Blue potion recipe (assuming type 2)
-                {"potion_type": [0, 0, 100, 0], "ml_per_potion": 50},  # Adjust ml per potion
+                {"potion_type": [0, 0, 100, 0], "ml_per_potion": 30},  # Adjust ml per potion
             ]
         for recipe in potion_recipes:
             available_ml = num_green_ml if recipe["potion_type"] == [0, 100, 0, 0] else (  # Check potion type
