@@ -38,6 +38,9 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 
             connection.execute(sqlalchemy.text(sql_update_quantity))
 
+            sql_update_gold= f"UPDATE global_inventory SET gold = gold - {barrel.price*barrel.quantity}"
+            connection.execute(sqlalchemy.text(sql_update_gold))
+
     print(f"barrels delivered: {barrels_delivered} order_id: {order_id}")
     return "OK"
 
@@ -64,13 +67,13 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         for barrel in wholesale_catalog:
             
-            if barrel.price*barrel.quantity < total_gold and total_gold>0:
+            if barrel.price <= total_gold and total_gold>0:
                 if barrel.sku == "SMALL_GREEN_BARREL":
                     if num_green_ml < 10:
                         # Purchase plan for green potion barrel
                         purchase_plan.append({
                             "sku": "SMALL_GREEN_BARREL",
-                            "quantity": barrel.quantity
+                            "quantity": 1
                         })
                             
                 elif barrel.sku == "SMALL_RED_BARREL":
@@ -78,17 +81,15 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         # Purchase plan for green potion barrel
                         purchase_plan.append({
                             "sku": "SMALL_RED_BARREL",
-                            "quantity": barrel.quantity
+                            "quantity": 1
                         })
                 elif barrel.sku == "SMALL_BLUE_BARREL":
                     if num_blue_ml < 10:
                         # Purchase plan for green potion barrel
                         purchase_plan.append({
                             "sku": "SMALL_BLUE_BARREL",
-                            "quantity": barrel.quantity
+                            "quantity": 1
                         })
-                sql_update_gold= f"UPDATE global_inventory SET gold = gold - {barrel.price*barrel.quantity}"
-                connection.execute(sqlalchemy.text(sql_update_gold))
             
 
 

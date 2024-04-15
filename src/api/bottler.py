@@ -24,15 +24,19 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             # Update inventory based on potion type
             if potion_type == [0, 100, 0, 0]:  # Green potion
                 sql_update_inventory = f"UPDATE global_inventory SET num_green_potions = num_green_potions + {potion.quantity}"
+                sql_update_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.quantity*50}"
             elif potion_type == [100, 0, 0, 0]:  # Red potion
                 sql_update_inventory = f"UPDATE global_inventory SET num_red_potions = num_red_potions + {potion.quantity}"
+                sql_update_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.quantity*50}"
             elif potion_type == [0, 0, 100, 0]:  # Blue potion
                 sql_update_inventory = f"UPDATE global_inventory SET num_blue_potions = num_blue_potions + {potion.quantity}"
+                sql_update_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.quantity*50}"
             else:
                 # Handle unexpected potion type (optional)
                 return {"error": "Invalid potion type"}
 
             connection.execute(sqlalchemy.text(sql_update_inventory))
+            connection.execute(sqlalchemy.text(sql_update_ml))
 
     print(f"potions delievered: {potions_delivered} order_id: {order_id}")
 
