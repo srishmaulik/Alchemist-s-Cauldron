@@ -6,6 +6,7 @@ import sqlalchemy
 from src import database as db
 
 cart_dict = {}
+cart_id_global = 1
 router = APIRouter(
     prefix="/carts",
     tags=["cart"],
@@ -93,8 +94,9 @@ def create_cart(new_cart: Customer):
     # Execute SQL statement
     
 
-
-    return {"cart_id": 1}
+    global cart_id_global 
+    cart_id_global +=1 
+    return {"cart_id": cart_id_global}
 
 
 class CartItem(BaseModel):
@@ -105,7 +107,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
     cart_dict[cart_id] = [item_sku, cart_item.quantity]
                            
-    return "OK"
+    return f"{cart_id}"
 
 
 
@@ -129,13 +131,13 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     if num_green >= quantity:
                         sql_update_statement = f"""
                             UPDATE global_inventory
-                            SET gold = gold + {200 * quantity},
+                            SET gold = gold + {40 * quantity},
                                 num_green_potions = num_green_potions - {quantity}
                             
                         """
                         connection.execute(sqlalchemy.text(sql_update_statement))
                         sold_quantity = quantity
-                        gold_earned = quantity * 200
+                        gold_earned = quantity * 40
                 elif item_sku == "RED_POTION_0":
                     sql_check_red = "SELECT num_red_potions FROM global_inventory"
                     red_result = connection.execute(sqlalchemy.text(sql_check_red))
@@ -144,12 +146,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     if num_red>= quantity:
                         sql_update_statement = f"""
                             UPDATE global_inventory
-                            SET gold = gold + {200 * quantity},
+                            SET gold = gold + {50 * quantity},
                                num_red_potions = num_red_potions - {quantity}
                         """
                         connection.execute(sqlalchemy.text(sql_update_statement))
                         sold_quantity = quantity
-                        gold_earned = quantity * 200
+                        gold_earned = quantity * 50
                 elif item_sku == "BLUE_POTION_0":
                     sql_check_blue = "SELECT num_blue_potions FROM global_inventory"
                     blue_result = connection.execute(sqlalchemy.text(sql_check_blue))
@@ -157,12 +159,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     if num_blue>= quantity:
                         sql_update_statement = f"""
                             UPDATE global_inventory
-                            SET gold = gold + {200 * quantity},
+                            SET gold = gold + {45 * quantity},
                                 num_blue_potions = num_blue_potions - {quantity}
                         """
                         connection.execute(sqlalchemy.text(sql_update_statement))
                         sold_quantity = quantity
-                        gold_earned = quantity * 200
+                        gold_earned = quantity * 45
 
 
     return {"total_potions_bought": sold_quantity , "total_gold_paid":gold_earned }
