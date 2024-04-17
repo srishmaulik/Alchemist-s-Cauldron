@@ -75,8 +75,8 @@ def get_bottle_plan():
                 {"potion_type": [0, 0, 100, 0], "ml_per_potion": 100},  # Adjust ml per potion
             ]
         for recipe in potion_recipes:
-            available_ml = num_green_ml.scalar_one() if recipe["potion_type"] == [0, 100, 0, 0] else (  # Check potion type
-                num_red_ml.scalar_one() if recipe["potion_type"] == [100, 0, 0, 0] else num_blue_ml.scalar_one()
+            available_ml = num_green_ml if recipe["potion_type"] == [0, 100, 0, 0] else (  # Check potion type
+                num_red_ml if recipe["potion_type"] == [100, 0, 0, 0] else num_blue_ml
             )
             ml_per_potion = recipe["ml_per_potion"]
 
