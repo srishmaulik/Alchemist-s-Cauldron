@@ -34,7 +34,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                 sql_update_quantity = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml + {barrel.ml_per_barrel * barrel.quantity}"
             else:
             #     # Handle unexpected potion type (optional)
-                return {"error": "Invalid potion type"}
+                raise Exception("invalid potion type")
 
             connection.execute(sqlalchemy.text(sql_update_quantity))
 
