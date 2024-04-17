@@ -68,13 +68,18 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for barrel in wholesale_catalog:
             
             if barrel.price <= total_gold and total_gold>0:
+                total_gold -= barrel.price
                 if barrel.sku == "SMALL_GREEN_BARREL":
                     if num_green_ml< 10:
                         # Purchase plan for green potion barrel
                         purchase_plan.append({
                             "sku": "SMALL_GREEN_BARREL",
+                         #   "ml_per_barrel": barrel.ml_per_barrel
+                          #  "potion_type": [0,1,0,0]
+                           # "price" : barrel.price
                             "quantity": 1
                         })
+                        total_gold -= barrel.price
                             
                 elif barrel.sku == "SMALL_RED_BARREL":
                     if num_red_ml < 10:
@@ -83,6 +88,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                             "sku": "SMALL_RED_BARREL",
                             "quantity": 1
                         })
+                        total_gold -= barrel.price
                 elif barrel.sku == "SMALL_BLUE_BARREL":
                     if num_blue_ml < 10:
                         # Purchase plan for green potion barrel
@@ -90,6 +96,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                             "sku": "SMALL_BLUE_BARREL",
                             "quantity": 1
                         })
+                        total_gold -= barrel.price
             
 
 
