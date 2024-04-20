@@ -5,35 +5,25 @@ router = APIRouter()
 from sqlalchemy import select
 
 
+
+
+
 @router.get("/catalog/", tags=["catalog"])
 def get_catalog():
     """
     Each unique item combination must have only a single price.
     """
+    catalog = []
     with db.engine.begin() as connection:
-        result1 = "SELECT num_green_potions FROM global_inventory"
-        green_result = connection.execute(sqlalchemy.text(result1))
-        result2 = "SELECT num_red_potions FROM global_inventory"
-        red_result = connection.execute(sqlalchemy.text(result2))
-        result3 = "SELECT num_blue_potions FROM global_inventory"
-        blue_result = connection.execute(sqlalchemy.text(result3))
-
-    return [
-            {
-                "sku": "GREEN_POTION_0",
-                "name": "green potion",
-                "quantity": green_result.scalar_one(),
-                "price": 40,
-                "potion_type": [0, 100, 0, 0]
-            }
-        ],[{ "sku": "RED_POTION_0",
-                "name": "red potion",
-                "quantity": red_result.scalar_one(),
-                "price": 50,
-                "potion_type": [100, 0, 0, 0]}
-                ],[{ "sku": "BLUE_POTION_0",
-                "name": "blue potion",
-                "quantity": blue_result.scalar_one(),
-                "price": 45,
-                "potion_type": [0, 0, 100, 0]}]
+        potions_to_sell = "SELECT* FROM potions"
+        result = connection.execute(sqlalchemy.text(potions_to_sell)).fetchall()
         
+        for potion in result:
+            catalog.append({
+                "name": potion.potion_name,  # Assuming potion_name is the column name
+                "quantity": potion.quantity,
+                "price": potion.price,
+                "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, 0]
+            })
+    return catalog
+       

@@ -16,34 +16,41 @@ class PotionInventory(BaseModel):
 
 @router.post("/deliver/{order_id}")
 def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int):
-    """ """
+
     with db.engine.begin() as connection:
         for potion in potions_delivered:
-            potion_type = potion.potion_type
+            # Construct potion name based on potion type
+            potion_name = f"RED_{potion.potion_type[0]}_GREEN_{potion.potion_type[1]}_BLUE_{potion.potion_type[2]}"
 
-            # Update inventory based on potion type
-            if potion_type == [0, 100, 0, 0]:  # Green potion
-                sql_update_inventory = f"UPDATE global_inventory SET num_green_potions = num_green_potions + {potion.quantity}"
-                sql_update_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.quantity*100}"
-            elif potion_type == [100, 0, 0, 0]:  # Red potion
-                sql_update_inventory = f"UPDATE global_inventory SET num_red_potions = num_red_potions + {potion.quantity}"
-                sql_update_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.quantity*100}"
-            elif potion_type == [0, 0, 100, 0]:  # Blue potion
-                sql_update_inventory = f"UPDATE global_inventory SET num_blue_potions = num_blue_potions + {potion.quantity}"
-                sql_update_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.quantity*100}"
+            # Check if the potion already exists in the database
+            existing_potion = connection.execute(sqlalchemy.text(f"SELECT * FROM potions WHERE potion_name = '{potion_name}'")).fetchone()
+
+            if existing_potion:
+                # If the potion already exists, update the quantity and price
+                existing_quantity = existing_potion['quantity']
+                new_quantity = existing_quantity + potion.quantity
+                
+                connection.execute(sqlalchemy.text(f"UPDATE potions SET quantity = {new_quantity}, WHERE potion_name = '{potion_name}'"))
             else:
-                # Handle unexpected potion type (optional)
-                return {"error": "Invalid potion type"}
+                # If the potion does not exist, insert a new row
+                price_per_bottle = round(0.5 * potion.potion_type[1] + 0.45 * potion.potion_type[0] + 0.4 * potion.potion_type[2])
+                connection.execute(sqlalchemy.text(f"INSERT INTO potions (potion_name, red_ml, green_ml, blue_ml, quantity, price) VALUES ('{potion_name}', {potion.potion_type[0]}, {potion.potion_type[1]}, {potion.potion_type[2]}, {potion.quantity}, {price_per_bottle})"))
 
-            connection.execute(sqlalchemy.text(sql_update_inventory))
-            connection.execute(sqlalchemy.text(sql_update_ml))
+            # Update global inventory based on potion type
+            sql_update_green_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.quantity*potion.potion_type[1]}"
+            sql_update_red_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.quantity*potion.potion_type[0]}"
+            sql_update_blue_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.quantity*potion.potion_type[2]}"
 
-    print(f"potions delievered: {potions_delivered} order_id: {order_id}")
+            connection.execute(sqlalchemy.text(sql_update_green_ml))
+            connection.execute(sqlalchemy.text(sql_update_red_ml))
+            connection.execute(sqlalchemy.text(sql_update_blue_ml))
+
+    print(f"Potions delivered: {potions_delivered} Order ID: {order_id}")
 
     return "OK"
 
 @router.post("/plan")
-def get_bottle_plan():
+def get_bottle_plan(potions_delivered: list[PotionInventory]):
     """
     Go from barrel to bottle.
     """
@@ -57,39 +64,37 @@ def get_bottle_plan():
         green_result = connection.execute(sqlalchemy.text(sql_green_ml))
         red_result = connection.execute(sqlalchemy.text(sql_red_ml))
         blue_result = connection.execute(sqlalchemy.text(sql_blue_ml))
-        
         num_green_ml = green_result.fetchone()[0]
         num_red_ml = red_result.fetchone()[0]
         num_blue_ml = blue_result.fetchone()[0]
+        available_green_ml = num_green_ml
+        available_red_ml = num_red_ml
+        available_blue_ml = num_blue_ml
+        
+        
     # Each bottle has a quantity of what proportion of red, blue, and
     # green potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
-    # Initial logic: bottle all barrels into green potions.
-        potion_recipes = [
-                # Green potion recipe (assuming type 0)
-                {"potion_type": [0, 100, 0, 0], "ml_per_potion": 100},
-                # Red potion recipe (assuming type 1)
-                {"potion_type": [100, 0, 0, 0], "ml_per_potion": 100},  # Adjust ml per potion
-                # Blue potion recipe (assuming type 2)
-                {"potion_type": [0, 0, 100, 0], "ml_per_potion": 100},  # Adjust ml per potion
-            ]
-        for recipe in potion_recipes:
-            available_ml = num_green_ml if recipe["potion_type"] == [0, 100, 0, 0] else (  # Check potion type
-                num_red_ml if recipe["potion_type"] == [100, 0, 0, 0] else num_blue_ml
-            )
-            ml_per_potion = recipe["ml_per_potion"]
-
+    
+        
+        for recipe in potions_delivered:
+            quantity = 0
+            for i in range(0, recipe.quantity):
             # Check if there's enough inventory for this potion type
-            if available_ml >= ml_per_potion:
-                # Calculate the number of potions to produce
-                quantity = available_ml // ml_per_potion
+                if available_green_ml >= recipe.potion_type[1] and available_red_ml>=recipe.potion_type[0] and available_blue_ml>=recipe.potion_type[2]:
+
+                    # Calculate the number of potions to produce
+                    quantity += 1
+                    available_green_ml -= recipe.potion_type[1]
+                    available_red_ml -= recipe.potion_type[0]
+                    available_blue_ml -= recipe.potion_type[2]
 
                 # Add the plan for bottling this potion type to the list
-                plan.append({
-                    "potion_type": recipe["potion_type"],
-                    "quantity": quantity
-                })
+            plan.append({
+                "potion_type": recipe.potion_type,
+                "quantity": quantity
+            })
     return plan 
 if __name__ == "__main__":
     print(get_bottle_plan())

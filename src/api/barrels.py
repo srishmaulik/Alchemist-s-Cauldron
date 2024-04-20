@@ -52,51 +52,36 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     with db.engine.begin() as connection:
         # Fetch the current inventory of green ml from the global inventory table
-        sql_green_ml = "SELECT num_green_ml FROM global_inventory"
-        sql_red_ml = "SELECT num_red_ml FROM global_inventory"
-        sql_blue_ml = "SELECT num_blue_ml FROM global_inventory"  # Add query for blue
+        # sql_green_ml = "SELECT num_green_ml FROM global_inventory"
+        # sql_red_ml = "SELECT num_red_ml FROM global_inventory"
+        # sql_blue_ml = "SELECT num_blue_ml FROM global_inventory"  # Add query for blue
         gold = "SELECT gold FROM global_inventory"
-        green_result = connection.execute(sqlalchemy.text(sql_green_ml))
-        red_result = connection.execute(sqlalchemy.text(sql_red_ml))
-        blue_result = connection.execute(sqlalchemy.text(sql_blue_ml))  # Execute new query
+        # green_result = connection.execute(sqlalchemy.text(sql_green_ml))
+        # red_result = connection.execute(sqlalchemy.text(sql_red_ml))
+        # blue_result = connection.execute(sqlalchemy.text(sql_blue_ml))  # Execute new query
         gold_result = connection.execute(sqlalchemy.text(gold))
-        num_green_ml = green_result.fetchone()[0]
-        num_red_ml = red_result.fetchone()[0]
-        num_blue_ml = blue_result.fetchone()[0]  # Access blue inventory
+        # num_green_ml = green_result.fetchone()[0]
+        # num_red_ml = red_result.fetchone()[0]
+        # num_blue_ml = blue_result.fetchone()[0]  # Access blue inventory
         total_gold = gold_result.fetchone()[0]
 
         for barrel in wholesale_catalog:
+            barrel_name = barrel.sku
             
             if barrel.price <= total_gold and total_gold>0:
+                   
+                purchase_plan.append({
+                    "sku": barrel_name,
+                    "quantity": 1
+                })
                 total_gold -= barrel.price
-                if barrel.sku == "SMALL_GREEN_BARREL":
-                    if num_green_ml< 10:
-                        # Purchase plan for green potion barrel
-                        purchase_plan.append({
-                            "sku": "SMALL_GREEN_BARREL",
-                         #   "ml_per_barrel": barrel.ml_per_barrel
-                          #  "potion_type": [0,1,0,0]
-                           # "price" : barrel.price
-                            "quantity": 1
-                        })
-                        total_gold -= barrel.price
+                        
                             
-                elif barrel.sku == "SMALL_RED_BARREL":
-                    if num_red_ml < 10:
+               
+                        
                         # Purchase plan for green potion barrel
-                        purchase_plan.append({
-                            "sku": "SMALL_RED_BARREL",
-                            "quantity": 1
-                        })
-                        total_gold -= barrel.price
-                elif barrel.sku == "SMALL_BLUE_BARREL":
-                    if num_blue_ml < 10:
-                        # Purchase plan for green potion barrel
-                        purchase_plan.append({
-                            "sku": "SMALL_BLUE_BARREL",
-                            "quantity": 1
-                        })
-                        total_gold -= barrel.price
+                       
+                       
             
 
 
