@@ -19,31 +19,52 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
 
     with db.engine.begin() as connection:
         for potion in potions_delivered:
-            # Construct potion name based on potion type
-            potion_name = f"RED_{potion.potion_type[0]}_GREEN_{potion.potion_type[1]}_BLUE_{potion.potion_type[2]}"
+            sql_update_green_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.potion_type[1]}"
+            sql_update_red_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.potion_type[0]}"
+            sql_update_blue_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.potion_type[2]}"
+            if potion.potion_type[0] > 0 and potion.potion_type[1] > 0 and potion.potion_type[2] > 0:
+                potion_name = "TRIFECTA_POTION"
+                connection.execute(sqlalchemy.text(sql_update_green_ml))
+                connection.execute(sqlalchemy.text(sql_update_red_ml))
+                connection.execute(sqlalchemy.text(sql_update_blue_ml))
+            elif potion.potion_type[0] > 0 and potion.potion_type[1] > 0 and potion.potion_type[2] == 0:
+                potion_name = "RED_GREEN_POTION"
+                connection.execute(sqlalchemy.text(sql_update_green_ml))
+                connection.execute(sqlalchemy.text(sql_update_red_ml))
+            elif potion.potion_type[0] == 0 and potion.potion_type[1] > 0 and potion.potion_type[2] > 0:
+                potion_name = "BLUE_GREEN_POTION"
+                connection.execute(sqlalchemy.text(sql_update_blue_ml))
+                connection.execute(sqlalchemy.text(sql_update_green_ml))
+            elif potion.potion_type[0] > 0 and potion.potion_type[1] == 0 and potion.potion_type[2] > 0:
+                potion_name = "RED_BLUE_POTION"
+                connection.execute(sqlalchemy.text(sql_update_red_ml))
+                connection.execute(sqlalchemy.text(sql_update_blue_ml))
+            elif potion.potion_type[0] > 0 and potion.potion_type[1] == 0 and potion.potion_type[2] == 0:
+                potion_name = "RED_POTION"
+                connection.execute(sqlalchemy.text(sql_update_red_ml))
+            elif potion.potion_type[0] == 0 and potion.potion_type[1] > 0 and potion.potion_type[2] == 0:
+                potion_name = "GREEN_POTION"
+                connection.execute(sqlalchemy.text(sql_update_green_ml))
+            elif potion.potion_type[0] == 0 and potion.potion_type[1] == 0 and potion.potion_type[2] > 0:
+                potion_name = "BLUE_POTION"
+                connection.execute(sqlalchemy.text(sql_update_blue_ml))
 
             # Check if the potion already exists in the database
-            existing_potion = connection.execute(sqlalchemy.text(f"SELECT * FROM potions WHERE potion_name = '{potion_name}'")).fetchone()
+            existing_potion = connection.execute(
+                sqlalchemy.text("SELECT * FROM potions WHERE potion_name = :potion_name"),
+                {"potion_name": potion_name}
+            ).fetchone()
 
             if existing_potion:
-                # If the potion already exists, update the quantity and price
-                existing_quantity = existing_potion['quantity']
-                new_quantity = existing_quantity + potion.quantity
+                # If the potion already exists, update the quantity by incrementing it by 1
+                existing_quantity = existing_potion[2]
+                new_quantity = existing_quantity + 1
+                connection.execute(
+                    sqlalchemy.text("UPDATE potions SET quantity = :new_quantity WHERE potion_name = :potion_name"),
+                    {"new_quantity": new_quantity, "potion_name": potion_name}
+                )
                 
-                connection.execute(sqlalchemy.text(f"UPDATE potions SET quantity = {new_quantity}, WHERE potion_name = '{potion_name}'"))
-            else:
-                # If the potion does not exist, insert a new row
-                price_per_bottle = round(0.5 * potion.potion_type[1] + 0.45 * potion.potion_type[0] + 0.4 * potion.potion_type[2])
-                connection.execute(sqlalchemy.text(f"INSERT INTO potions (potion_name, red_ml, green_ml, blue_ml, quantity, price) VALUES ('{potion_name}', {potion.potion_type[0]}, {potion.potion_type[1]}, {potion.potion_type[2]}, {potion.quantity}, {price_per_bottle})"))
-
-            # Update global inventory based on potion type
-            sql_update_green_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.quantity*potion.potion_type[1]}"
-            sql_update_red_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.quantity*potion.potion_type[0]}"
-            sql_update_blue_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.quantity*potion.potion_type[2]}"
-
-            connection.execute(sqlalchemy.text(sql_update_green_ml))
-            connection.execute(sqlalchemy.text(sql_update_red_ml))
-            connection.execute(sqlalchemy.text(sql_update_blue_ml))
+           
 
     print(f"Potions delivered: {potions_delivered} Order ID: {order_id}")
 
