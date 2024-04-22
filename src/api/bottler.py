@@ -22,32 +22,49 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             sql_update_green_ml = f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.potion_type[1]}"
             sql_update_red_ml = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.potion_type[0]}"
             sql_update_blue_ml = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.potion_type[2]}"
+            sql_update_potion_red_ml = f"UPDATE potions SET red_ml = red_ml + {potion.potion_type[0]}"
+            sql_update_potion_blue_ml = f"UPDATE potions SET blue_ml = blue_ml + {potion.potion_type[2]}"
+            sql_update_potion_green_ml = f"UPDATE potions SET green_ml = green_ml + {potion.potion_type[1]}"
+
             if potion.potion_type[0] > 0 and potion.potion_type[1] > 0 and potion.potion_type[2] > 0:
                 potion_name = "TRIFECTA_POTION"
                 connection.execute(sqlalchemy.text(sql_update_green_ml))
                 connection.execute(sqlalchemy.text(sql_update_red_ml))
                 connection.execute(sqlalchemy.text(sql_update_blue_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_green_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_red_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_blue_ml))
             elif potion.potion_type[0] > 0 and potion.potion_type[1] > 0 and potion.potion_type[2] == 0:
                 potion_name = "RED_GREEN_POTION"
                 connection.execute(sqlalchemy.text(sql_update_green_ml))
                 connection.execute(sqlalchemy.text(sql_update_red_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_green_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_red_ml))
             elif potion.potion_type[0] == 0 and potion.potion_type[1] > 0 and potion.potion_type[2] > 0:
                 potion_name = "BLUE_GREEN_POTION"
                 connection.execute(sqlalchemy.text(sql_update_blue_ml))
                 connection.execute(sqlalchemy.text(sql_update_green_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_blue_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_green_ml))
             elif potion.potion_type[0] > 0 and potion.potion_type[1] == 0 and potion.potion_type[2] > 0:
                 potion_name = "RED_BLUE_POTION"
                 connection.execute(sqlalchemy.text(sql_update_red_ml))
                 connection.execute(sqlalchemy.text(sql_update_blue_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_red_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_blue_ml))
             elif potion.potion_type[0] > 0 and potion.potion_type[1] == 0 and potion.potion_type[2] == 0:
                 potion_name = "RED_POTION"
                 connection.execute(sqlalchemy.text(sql_update_red_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_red_ml))
             elif potion.potion_type[0] == 0 and potion.potion_type[1] > 0 and potion.potion_type[2] == 0:
                 potion_name = "GREEN_POTION"
                 connection.execute(sqlalchemy.text(sql_update_green_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_green_ml))
             elif potion.potion_type[0] == 0 and potion.potion_type[1] == 0 and potion.potion_type[2] > 0:
                 potion_name = "BLUE_POTION"
                 connection.execute(sqlalchemy.text(sql_update_blue_ml))
+                connection.execute(sqlalchemy.text(sql_update_potion_blue_ml))
+                
 
             # Check if the potion already exists in the database
             existing_potion = connection.execute(
