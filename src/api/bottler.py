@@ -123,12 +123,26 @@ def get_bottle_plan():
                 if num_red_ml>=50 and num_blue_ml>=50:
                     total_ml -=100
                     plan.append({"potion_type":[50, 0, 50, 0], "quantity": 1})
+                elif num_red_ml<50 and num_blue_ml>=100:
+                    total_ml -=100
+                    plan.append({"potion_type":[0, 0, 100, 0], "quantity": 1})
+                elif num_red_ml>=100 and num_blue_ml<50:
+                    total_ml -=100
+                    plan.append({"potion_type":[100, 0, 0, 0], "quantity": 1})
+
+                
 
 
             elif num_red_ml == 0 and num_blue_ml > 0 and num_green_ml > 0:
                 if num_green_ml>=50 and num_blue_ml>=50:
                     total_ml -=100            
-                    plan.append({"potion_type": [0, 50, 50], "quantity": 1})
+                    plan.append({"potion_type": [0, 50, 50, 0], "quantity": 1})
+                elif num_blue_ml<50 and num_green_ml>=100:
+                    total_ml -=100
+                    plan.append({"potion_type":[0, 100, 0, 0], "quantity": 1})
+                elif num_blue_ml>=100 and num_green_ml<50:
+                    total_ml -=100
+                    plan.append({"potion_type":[0, 0, 100, 0], "quantity": 1})
             elif num_blue_ml == 0 and num_red_ml > 0 and num_green_ml > 0:
     # Calculate the total sum of available ml
                 if num_red_ml>=50 and num_green_ml>=50:
@@ -140,6 +154,27 @@ def get_bottle_plan():
                     total_ml -=100
                     # Add the mixed potion to the plan
                     plan.append({"potion_type": [34, 33, 33, 0], "quantity": 1})
+                elif num_red_ml<34 and num_green_ml>=50 and num_blue_ml>=50:
+                    total_ml -=100            
+                    plan.append({"potion_type": [0, 50, 50, 0], "quantity": 1})
+                elif num_red_ml>=50 and num_green_ml>=50 and num_blue_ml<33:
+                    total_ml -=100            
+                    plan.append({"potion_type": [50, 50, 0, 0], "quantity": 1})
+                elif num_red_ml>=50 and num_green_ml<33 and num_blue_ml>=50:
+                    total_ml -=100 
+                    plan.append({"potion_type": [50, 0, 50, 0], "quantity": 1})
+                elif num_green_ml<33 and num_blue_ml<33 and num_red_ml>=100:
+                    total_ml -=100 
+                    plan.append({"potion_type": [100, 0, 0, 0], "quantity": 1})
+                elif num_red_ml<33 and num_blue_ml<33 and num_green_ml>=100:
+                    total_ml -=100 
+                    plan.append({"potion_type": [0, 100, 0, 0], "quantity": 1})
+                elif num_red_ml<33 and num_green_ml<33 and num_blue_ml>=100:
+                    total_ml -=100 
+                    plan.append({"potion_type": [0, 0, 100, 0], "quantity": 1})
+                else:
+                    break
+
 
         return plan 
     # Each bottle has a quantity of what proportion of red, blue, and
