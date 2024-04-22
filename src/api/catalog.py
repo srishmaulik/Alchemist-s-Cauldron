@@ -19,11 +19,12 @@ def get_catalog():
         result = connection.execute(sqlalchemy.text(potions_to_sell)).fetchall()
         
         for potion in result:
-            catalog.append({
-                "name": potion.potion_name,  # Assuming potion_name is the column name
-                "quantity": potion.quantity,
-                "price": potion.price,
-                "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, 0]
-            })
+            if potion.quantity>0:
+                catalog.append({
+                    "name": potion.potion_name,  # Assuming potion_name is the column name
+                    "quantity": potion.quantity,
+                    "price": potion.price,
+                    "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, 0]
+                })
     return catalog
        
