@@ -97,155 +97,156 @@ def get_bottle_plan():
          num_red_ml = red_result.fetchone()[0]
          num_blue_ml = blue_result.fetchone()[0]
          total_ml = num_green_ml+num_blue_ml+num_red_ml
+         
 
-         while total_ml>=100:
-             if num_green_ml == 0 and num_blue_ml == 0:
+         while total_ml>100:
 
-                 total_ml -= 100
-                 plan.append({"potion_type": [100,0,0,0], "quantity": 1})
 
-             elif num_red_ml == 0 and num_blue_ml == 0:
-                 total_ml -= 100
+            if num_green_ml == 0 and num_blue_ml == 0:
+
+                num_red_ml =num_red_ml - 100
+                total_ml = num_red_ml
+                plan.append({"potion_type": [100,0,0,0], "quantity": 1})
+
+            elif num_red_ml == 0 and num_blue_ml == 0:
+                 num_green_ml -= 100
+                 total_ml = num_green_ml
                  plan.append({"potion_type": [0,100,0,0], "quantity": 1})
 
-             elif num_red_ml == 0 and num_green_ml == 0:
-
-                 total_ml -= 100
+            elif num_red_ml == 0 and num_green_ml == 0:
+                 num_blue_ml -= 100
+                 total_ml = num_blue_ml
                  plan.append({"potion_type": [0,0,100,0], "quantity": 1})
 
-             elif num_green_ml == 0 and num_red_ml > 0 and num_blue_ml > 0:
+            elif num_green_ml == 0 and num_red_ml > 0 and num_blue_ml > 0:
      # Calculate the total sum of available ml
 
 
-                 # Calculate the proportion based on the available ml for each color
-                 red_proportion = num_red_ml / total_ml * 100
-                 blue_proportion = num_blue_ml / total_ml * 100
+                red_proportion = num_red_ml / total_ml * 100
+                blue_proportion = num_blue_ml / total_ml * 100
 
-                 # Round the proportions to integers
-                 red_quantity = round(red_proportion)
-                 blue_quantity = round(blue_proportion)
+                 
+                red_quantity = round(red_proportion)
+                blue_quantity = round(blue_proportion)
 
                  # Adjust the quantities to ensure the sum equals 100
-                 total_quantity = red_quantity + blue_quantity
-                 adjustment = 100 - total_quantity
-                 if adjustment != 0:
-                     # Adjust one of the quantities to make the total sum exactly 100
-                     if adjustment > 0:
-                         # Increase the quantity of the larger proportion
-                         if red_proportion > blue_proportion:
+                total_quantity = red_quantity + blue_quantity
+                adjustment = 100 - total_quantity
+                if adjustment != 0:
+                    if adjustment > 0:
+                        if red_proportion > blue_proportion:
                              red_quantity += adjustment
-                         else:
+                        else:
                              blue_quantity += adjustment
-                     else:
-                         # Decrease the quantity of the larger proportion
+                    else:
                          if red_proportion > blue_proportion:
                              red_quantity -= adjustment
                          else:
                              blue_quantity -= adjustment
-                 total_ml -=100
-                 plan.append({"potion_type":[red_quantity, 0, blue_quantity, 0], "quantity": 1})
+                num_red_ml -= red_quantity
+                num_blue_ml -= blue_quantity
+                total_ml = num_blue_ml+num_red_ml
+                plan.append({"potion_type":[red_quantity, 0, blue_quantity, 0], "quantity": 1})
 
 
-             elif num_red_ml == 0 and num_blue_ml > 0 and num_green_ml > 0:
+            elif num_red_ml == 0 and num_blue_ml > 0 and num_green_ml > 0:
      # Calculate the total sum of available ml
 
 
                  # Calculate the proportion based on the available ml for each color
-                 green_proportion = num_green_ml / total_ml * 100
-                 blue_proportion = num_blue_ml / total_ml * 100
+                green_proportion = num_green_ml / total_ml * 100
+                blue_proportion = num_blue_ml / total_ml * 100
 
                  # Round the proportions to integers
-                 green_quantity = round(green_proportion)
-                 blue_quantity = round(blue_proportion)
+                green_quantity = round(green_proportion)
+                blue_quantity = round(blue_proportion)
 
                  # Adjust the quantities to ensure the sum equals 100
-                 total_quantity = green_quantity + blue_quantity
-                 adjustment = 100 - total_quantity
-                 if adjustment != 0:
-                     # Adjust one of the quantities to make the total sum exactly 100
-                     if adjustment > 0:
-                         # Increase the quantity of the larger proportion
-                         if green_proportion > blue_proportion:
+                total_quantity = green_quantity + blue_quantity
+                adjustment = 100 - total_quantity
+                if adjustment != 0:
+                    if adjustment > 0:
+                        if green_proportion > blue_proportion:
                              green_quantity += adjustment
-                         else:
-                             blue_quantity += adjustment
-                     else:
-                         # Decrease the quantity of the larger proportion
-                         if green_proportion > blue_proportion:
+                        else:
+                            blue_quantity += adjustment
+                    else:
+                        if green_proportion > blue_proportion:
                              green_quantity -= adjustment
-                         else:
+                        else:
                              blue_quantity -= adjustment
-                 total_ml -=100            
-                 plan.append({"potion_type": [0, green_quantity, blue_quantity], "quantity": 1})
-             elif num_blue_ml == 0 and num_red_ml > 0 and num_green_ml > 0:
-     # Calculate the total sum of available ml
-
-
-                 # Calculate the proportion based on the available ml for each color
-                 green_proportion = num_green_ml / total_ml * 100
-                 red_proportion = num_red_ml / total_ml * 100
+                num_green_ml -= green_quantity
+                num_blue_ml -= blue_quantity
+                total_ml = num_blue_ml+num_green_ml       
+                plan.append({"potion_type": [0, green_quantity, blue_quantity], "quantity": 1})
+            elif num_blue_ml == 0 and num_red_ml > 0 and num_green_ml > 0:
+    
+                green_proportion = num_green_ml / total_ml * 100
+                red_proportion = num_red_ml / total_ml * 100
 
                  # Round the proportions to integers
-                 green_quantity = round(green_proportion)
-                 blue_quantity = round(red_proportion)
+                green_quantity = round(green_proportion)
+                blue_quantity = round(red_proportion)
 
                  # Adjust the quantities to ensure the sum equals 100
-                 total_quantity = green_quantity + red_quantity
-                 adjustment = 100 - total_quantity
-                 if adjustment != 0:
-                     # Adjust one of the quantities to make the total sum exactly 100
-                     if adjustment > 0:
+                total_quantity = green_quantity + red_quantity
+                adjustment = 100 - total_quantity
+                if adjustment != 0:
+                    if adjustment > 0:
                          # Increase the quantity of the larger proportion
-                         if green_proportion > red_proportion:
-                             green_quantity += adjustment
-                         else:
-                             red_quantity += adjustment
-                     else:
+                        if green_proportion > red_proportion:
+                            green_quantity += adjustment
+                        else:
+                            red_quantity += adjustment
+                    else:
                          # Decrease the quantity of the larger proportion
-                         if green_proportion > red_proportion:
-                             green_quantity -= adjustment
-                         else:
-                             red_quantity -= adjustment
-                 total_ml -=100
-                 plan.append({"potion_type": [red_quantity, green_quantity, 0,0 ], "quantity": 1})
-             elif num_green_ml > 0 and num_red_ml > 0 and num_blue_ml > 0:
-     # Calculate the quantity based on the proportions
-                 total_ml = num_green_ml + num_red_ml + num_blue_ml
-
-                 # Calculate the proportion of each color
-                 green_proportion = num_green_ml / total_ml * 100
-                 red_proportion = num_red_ml / total_ml * 100
-                 blue_proportion = num_blue_ml / total_ml * 100
+                        if green_proportion > red_proportion:
+                            green_quantity -= adjustment
+                        else:
+                            red_quantity -= adjustment
+                num_green_ml -= green_quantity
+                num_red_ml -= red_quantity
+                total_ml = num_red_ml+num_green_ml       
+                plan.append({"potion_type": [red_quantity, green_quantity, 0,0 ], "quantity": 1})
+            elif num_green_ml > 0 and num_red_ml > 0 and num_blue_ml > 0:
+    
+                green_proportion = num_green_ml / total_ml * 100
+                red_proportion = num_red_ml / total_ml * 100
+                blue_proportion = num_blue_ml / total_ml * 100
+                
 
                  # Round the proportions to integers
-                 green_quantity = round(green_proportion)
-                 red_quantity = round(red_proportion)
-                 blue_quantity = round(blue_proportion)
+                green_quantity = round(green_proportion)
+                red_quantity = round(red_proportion)
+                blue_quantity = round(blue_proportion)
 
-                 # Adjust the quantities to ensure the sum equals 100
-                 total_quantity = green_quantity + red_quantity + blue_quantity
-                 adjustment = 100 - total_quantity
-                 if adjustment != 0:
+                # Adjust the quantities to ensure the sum equals 100
+                total_quantity = green_quantity + red_quantity + blue_quantity
+                adjustment = 100 - total_quantity
+                if adjustment != 0:
                      # Adjust one of the quantities to make the total sum exactly 100
-                     if adjustment > 0:
-                         # Increase the quantity of the largest proportion
-                         if green_proportion > red_proportion and green_proportion > blue_proportion:
-                             green_quantity += adjustment
-                         elif red_proportion > blue_proportion:
-                             red_quantity += adjustment
-                         else:
-                             blue_quantity += adjustment
-                     else:
+                    if adjustment > 0:
+                        # Increase the quantity of the largest proportion
+                        if green_proportion > red_proportion and green_proportion > blue_proportion:
+                            green_quantity += adjustment
+                        elif red_proportion > blue_proportion:
+                            red_quantity += adjustment
+                        else:
+                            blue_quantity += adjustment
+                    else:
                          # Decrease the quantity of the largest proportion
-                         if green_proportion > red_proportion and green_proportion > blue_proportion:
-                             green_quantity -= adjustment
-                         elif red_proportion > blue_proportion:
-                             red_quantity -= adjustment
-                         else:
-                             blue_quantity -= adjustment
-                 total_ml -=100
+                        if green_proportion > red_proportion and green_proportion > blue_proportion:
+                            green_quantity -= adjustment
+                        elif red_proportion > blue_proportion:
+                            red_quantity -= adjustment
+                        else:
+                            blue_quantity -= adjustment
+                num_green_ml -= green_quantity
+                num_blue_ml -= blue_quantity
+                num_red_ml -= red_quantity
+                total_ml = num_blue_ml+num_green_ml+num_red_ml    
                  # Add the mixed potion to the plan
-                 plan.append({"potion_type": [red_quantity, green_quantity, blue_quantity, 0], "quantity": 1})
+                plan.append({"potion_type": [red_quantity, green_quantity, blue_quantity, 0], "quantity": 1})
 
          return plan 
     # Each bottle has a quantity of what proportion of red, blue, and
