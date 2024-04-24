@@ -37,12 +37,12 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             connection.execute(sql_update_blue_ml, {"blue_ml": potion.potion_type[2]})
 
             # Generate potion name
-            potion_name = f"RED_{potion.potion_type[0]}_GREEN_{potion.potion_type[1]}_BLUE_{potion.potion_type[2]}"
+            item_sku = f"RED_{potion.potion_type[0]}_GREEN_{potion.potion_type[1]}_BLUE_{potion.potion_type[2]}"
 
             # Check if the potion already exists in the database
             existing_potion = connection.execute(
-                sqlalchemy.text("SELECT * FROM potions WHERE potion_name = :potion_name"),
-                {"potion_name": potion_name}
+                sqlalchemy.text("SELECT * FROM potions WHERE item_sku = :item_sku"),
+                {"item_sku": item_sku}
             ).fetchone()
 
             if existing_potion:
@@ -50,19 +50,19 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                 existing_quantity = existing_potion[2]
                 new_quantity = existing_quantity + 1
                 connection.execute(
-                    sqlalchemy.text("UPDATE potions SET quantity = :new_quantity WHERE potion_name = :potion_name"),
-                    {"new_quantity": new_quantity, "potion_name": potion_name}
+                    sqlalchemy.text("UPDATE potions SET quantity = :new_quantity WHERE item_sku = :item_sku"),
+                    {"new_quantity": new_quantity, "item_sku": item_sku}
                 )
             else:
                 # If the potion does not exist, insert a new row with quantity 1
                 price =  round(potion.potion_type[0]*.45) + round(potion.potion_type[1]*.41) + round(potion.potion_type[2]*.4)
                 potion_id = connection.execute(sqlalchemy.text("SELECT MAX(potion_id) FROM potions")).scalar() or 0
                 connection.execute(
-                    sqlalchemy.text("INSERT INTO potions (potion_id, potion_name, quantity, price, red_ml, green_ml, blue_ml) "
-                                    "VALUES (:potion_id, :potion_name, 1, :price, :red_ml, :green_ml, :blue_ml)"),
+                    sqlalchemy.text("INSERT INTO potions (potion_id, item_sku, quantity, price, red_ml, green_ml, blue_ml) "
+                                    "VALUES (:potion_id, :item_sku, 1, :price, :red_ml, :green_ml, :blue_ml)"),
                     {
                         "potion_id": potion_id + 1,
-                        "potion_name": potion_name,
+                        "item_sku": item_sku,
                         "price": price,
                         "red_ml": potion.potion_type[0],
                         "green_ml": potion.potion_type[1],
@@ -142,6 +142,5 @@ def get_bottle_plan():
     # Each bottle has a quantity of what proportion of red, blue, and
     # green potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
-    
 if __name__ == "__main__":
     print(get_bottle_plan())

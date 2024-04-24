@@ -51,18 +51,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     purchase_plan = []
     
     with db.engine.begin() as connection:
-        # Fetch the current inventory of green ml from the global inventory table
-        # sql_green_ml = "SELECT num_green_ml FROM global_inventory"
-        # sql_red_ml = "SELECT num_red_ml FROM global_inventory"
-        # sql_blue_ml = "SELECT num_blue_ml FROM global_inventory"  # Add query for blue
+        
         gold = "SELECT gold FROM global_inventory"
-        # green_result = connection.execute(sqlalchemy.text(sql_green_ml))
-        # red_result = connection.execute(sqlalchemy.text(sql_red_ml))
-        # blue_result = connection.execute(sqlalchemy.text(sql_blue_ml))  # Execute new query
+        
         gold_result = connection.execute(sqlalchemy.text(gold))
-        # num_green_ml = green_result.fetchone()[0]
-        # num_red_ml = red_result.fetchone()[0]
-        # num_blue_ml = blue_result.fetchone()[0]  # Access blue inventory
+       
         total_gold = gold_result.fetchone()[0]
 
         for barrel in wholesale_catalog:
@@ -76,15 +69,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 })
                 total_gold -= barrel.price
                         
-                            
-               
-                        
-                        # Purchase plan for green potion barrel
-                       
-                       
-            
 
 
     print(wholesale_catalog)
     return purchase_plan
-
