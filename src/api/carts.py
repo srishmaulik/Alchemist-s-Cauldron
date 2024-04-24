@@ -105,7 +105,7 @@ def create_cart(new_cart: Customer):
         )
         
         # Return the generated cart_id
-        return {"cart_id": cart_id}
+        return {"cart_id": str(cart_id)}
     
    
 class CartItem(BaseModel):
