@@ -43,33 +43,112 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 
     print(f"barrels delivered: {barrels_delivered} order_id: {order_id}")
     return "OK"
-
-# Gets called once a day
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     purchase_plan = []
-    
     with db.engine.begin() as connection:
-        
-        gold = "SELECT gold FROM global_inventory"
-        
-        gold_result = connection.execute(sqlalchemy.text(gold))
-       
-        total_gold = gold_result.fetchone()[0]
+        all_inventory = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, gold FROM global_inventory")).fetchone()
+        if all_inventory:
+            num_red_ml, num_green_ml, num_blue_ml, gold = all_inventory
+            for barrel in wholesale_catalog:
+                if gold >= barrel.price:
+                    if gold <= 200:
+                        if barrel.sku[:4] == "MINI":
+                            purchase_plan.append({
+                                "sku": barrel.sku,
+                                "quantity": 1
+                            })
+                            gold -=barrel.price
+                        elif barrel.sku[:5] == "SMALL":
+                            if (barrel.potion_type == [1, 0, 0, 0] and num_red_ml < 200) or \
+                               (barrel.potion_type == [0, 1, 0, 0] and num_green_ml < 200) or \
+                               (barrel.potion_type == [0, 0, 1, 0] and num_blue_ml < 200):
+                                purchase_plan.append({
+                                    "sku": barrel.sku,
+                                    "quantity": 1
+                                })
+                                gold -= barrel.price
+                    else:
+                        if barrel.price <= (gold // 2):
+                            purchase_plan.append({
+                                "sku": barrel.sku,
+                                "quantity": 1
+                            })
+                            gold -= barrel.price
+                else:
+                    continue
+    print(wholesale_catalog)
+    return purchase_plan
 
-        for barrel in wholesale_catalog:
-            barrel_name = barrel.sku
+   
+
+
+# def purchase_plan(barrels:list[Barrel]):
+#     purchase_plan = []
+#     with db.engine.begin() as connection:
+#         all_inventory = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, gold FROM global_inventory"))         
+#         num_red_ml,num_green_ml, num_blue_ml, gold  = all_inventory[0].fetchone()[0], all_inventory[1].fetchone()[0], all_inventory[2].fetchone()[0], all_inventory[3].fetchone()[0]
+#         for barrel in barrels:
+#             if gold>= barrel.price:
+#                 if gold<=200:
+#                     if barrel.sku[:4] == 'MINI':
+#                         purchase_plan.append({
+#                             "sku": barrel.sku,
+#                             "quantity": 1
+#                         })
+                        
+#                     elif barrel.sku[:5] == 'SMALL':
+#                         if (barrel.potion_type == [1,0,0,0] and num_red_ml<200) or (barrel.potion_type == [0,1,0,0] and num_green_ml<200) or (barrel.potion_type == [0,0,1,0] and num_blue_ml<200):
+#                             purchase_plan.append({
+#                             "sku": barrel.sku,
+#                             "quantity": 1
+#                         })
+#                     gold -= barrel.price
+#                 else:
+#                     if barrel.price<=(gold//2):
+#                         purchase_plan.append({
+#                             "sku": barrel.sku,
+#                             "quantity": 1
+#                         })
+#                     else:
+#                         continue
+
+#     print(wholesale_catalog)
+#     return purchase_plan
+
+                
+
+
+
+                            
+                            
+                      
+                
+
             
-            if barrel.price <= total_gold and total_gold>0:
+#  purchase_plan = []
+    
+#     with db.engine.begin() as connection:
+        
+#         gold = "SELECT gold FROM global_inventory"
+        
+#         gold_result = connection.execute(sqlalchemy.text(gold))
+       
+#         total_gold = gold_result.fetchone()[0]
+
+#         for barrel in wholesale_catalog:
+#             barrel_name = barrel.sku
+            
+#             if barrel.price <= total_gold and total_gold>0:
                    
-                purchase_plan.append({
-                    "sku": barrel_name,
-                    "quantity": 1
-                })
-                total_gold -= barrel.price
+#                 purchase_plan.append({
+#                     "sku": barrel_name,
+#                     "quantity": 1
+#                 })
+#                 total_gold -= barrel.price
                         
 
 
-    print(wholesale_catalog)
-    return purchase_plan
+#     print(wholesale_catalog)
+#     return purchase_plan
