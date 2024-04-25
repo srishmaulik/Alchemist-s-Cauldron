@@ -90,19 +90,10 @@ def post_visits(visit_id: int, customers: list[Customer]):
 def create_cart(new_cart: Customer):
     """Create a new cart."""
     with db.engine.begin() as connection:
-        # Retrieve the last cart_id from the carts table
-        last_cart_id = connection.execute(
-            sqlalchemy.text("SELECT cart_id FROM carts ORDER BY cart_id DESC LIMIT 1")
-        ).scalar()
-        
-        # Increment the last cart_id by one to get the new cart_id
-        cart_id = last_cart_id + 1 if last_cart_id is not None else 1
         
         # Insert the new cart_id into the carts table
-        connection.execute(
-            sqlalchemy.text("INSERT INTO carts (cart_id) VALUES (:cart_id)"),
-            {"cart_id": cart_id}
-        )
+        cart_id = connection.execute(
+            sqlalchemy.text("INSERT INTO carts DEFAULT VALUES RETURNING cart_id")).scalar_one()
         
         # Return the generated cart_id
         return {"cart_id": str(cart_id)}
@@ -110,6 +101,7 @@ def create_cart(new_cart: Customer):
    
 class CartItem(BaseModel):
     quantity: int
+    
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
@@ -147,7 +139,9 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
             {"cart_item_id": cart_item_id, "cart_id": cart_id, "potion_id": potion_id, "quantity": cart_item.quantity}
         )
         
-    return f"Item {item_sku} added to cart {cart_id}"
+    return {
+    "success": True
+    }
 
 
 class CartCheckout(BaseModel):
@@ -197,5 +191,5 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             """
             connection.execute(sqlalchemy.text(sql_update_statement))
 
-    return {"cart_id": cart_id, "total_price": total_price}
+    return {"total_potions_bought": quantity , "total_gold_paid": total_price}
     
