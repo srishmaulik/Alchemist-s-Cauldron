@@ -50,14 +50,14 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             #     item_sku = "Brownie_60"
             # elif potion.potion_type == [40,60,0,0]:
             #     item_sku = "Brownie_40"
-            # elif potion.potion_type == [50,0,50,0]:
-            #     item_sku = "Purplie"
+            elif potion.potion_type == [50,0,50,0]:
+                item_sku = "Purplie"
             # elif potion.potion_type == [60,0,40,0]:
             #     item_sku = "Purplie_60"
             # elif potion.potion_type == [40,0,60,0]:
             #     item_sku = "Purplie_40"
-            # elif potion.potion_type == [0,50,50,0]:
-            #     item_sku = "Yellow_mellow"
+            elif potion.potion_type == [0,50,50,0]:
+                item_sku = "Yellow_mellow"
             # elif potion.potion_type == [0,40,60,0]:
             #     item_sku = "Yellow_mellow_60"
             # elif potion.potion_type == [0,60,40,0]:
