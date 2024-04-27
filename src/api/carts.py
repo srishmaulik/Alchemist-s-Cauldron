@@ -139,9 +139,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
             {"cart_item_id": cart_item_id, "cart_id": cart_id, "potion_id": potion_id, "quantity": cart_item.quantity}
         )
         
-    return {
-    "success": True
-    }
+    return "OK"
 
 
 class CartCheckout(BaseModel):
