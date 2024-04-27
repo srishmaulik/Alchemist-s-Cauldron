@@ -101,10 +101,10 @@ def create_cart(new_cart: Customer):
    
 class CartItem(BaseModel):
     quantity: int
-    
 @router.post("/{cart_id}/items/{item_sku}")
-def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
+def set_item_quantity(cart_id: str, item_sku: str, cart_item: CartItem):
     """ """
+    cart_id = cart_id.strip('"')
     with db.engine.begin() as connection:
         # Check if the cart exists
         cart_exists = connection.execute(
