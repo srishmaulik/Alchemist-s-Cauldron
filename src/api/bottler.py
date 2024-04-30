@@ -35,6 +35,10 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                 "UPDATE global_inventory SET num_blue_ml = num_blue_ml - :blue_ml"
             )
             connection.execute(sql_update_blue_ml, {"blue_ml": potion.potion_type[2]})
+            connection.execute(
+    sqlalchemy.text("INSERT INTO barrel_ledgers (green_ml, red_ml, blue_ml) VALUES (:green_ml, :red_ml, :blue_ml)"),
+    {"green_ml": -potion.potion_type[1], "red_ml": -potion.potion_type[0], "blue_ml": -potion.potion_type[2]}
+)
 
             # Generate potion name
             

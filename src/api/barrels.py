@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
-
+import datetime
 router = APIRouter(
     prefix="/barrels",
     tags=["barrels"],
@@ -25,13 +25,19 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     with db.engine.begin() as connection:
         for barrel in barrels_delivered:
             potion_type = barrel.potion_type
-
+            ml = ""
             if potion_type == [0, 1, 0, 0]:  # Check for green potion type
                 sql_update_quantity = f"UPDATE global_inventory SET num_green_ml = num_green_ml + {barrel.ml_per_barrel * barrel.quantity}"
+                ml = "green_ml"
+                connection.execute(sqlalchemy.text("INSERT INTO barrel_ledgers (green_ml)" "VALUES(:green_ml)" ), {"green_ml":barrel.ml_per_barrel * barrel.quantity})
             elif potion_type == [1, 0, 0, 0]:  # Check for red potion type
                 sql_update_quantity = f"UPDATE global_inventory SET num_red_ml = num_red_ml + {barrel.ml_per_barrel * barrel.quantity}"
+                ml = "red_ml"
+                connection.execute(sqlalchemy.text("INSERT INTO barrel_ledgers (red_ml)" "VALUES(:red_ml)" ), {"red_ml":barrel.ml_per_barrel * barrel.quantity})
             elif potion_type == [0, 0, 1, 0]:  # Check for blue potion type (example)
                 sql_update_quantity = f"UPDATE global_inventory SET num_blue_ml = num_blue_ml + {barrel.ml_per_barrel * barrel.quantity}"
+                ml = "blue_ml"
+                connection.execute(sqlalchemy.text("INSERT INTO barrel_ledgers (blue_ml)" "VALUES(:blue_ml)" ), {"blue_ml":barrel.ml_per_barrel * barrel.quantity})
             else:
             #     # Handle unexpected potion type (optional)
                 raise Exception("invalid potion type")
@@ -40,7 +46,20 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 
             sql_update_gold= f"UPDATE global_inventory SET gold = gold - {barrel.price*barrel.quantity}"
             connection.execute(sqlalchemy.text(sql_update_gold))
+            account_id = connection.execute(sqlalchemy.text("SELECT account_id FROM accounts ORDER BY account_id DESC LIMIT 1")).scalar()
+            description = f"bought {barrel.ml_per_barrel * barrel.quantity}{ml} for {barrel.price*barrel.quantity}"
+            transaction_id = connection.execute(
+            sqlalchemy.text("INSERT INTO account_transactions (created_at, description) "
+                            "VALUES (:created_at, :description) RETURNING id"),
+            {"created_at": datetime.datetime.now(), "description": description}
+        ).scalar_one()
 
+            connection.execute(
+            sqlalchemy.text("INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
+                            "VALUES (:account_id, :transaction_id, :change)"),
+            {"account_id": account_id, "transaction_id": transaction_id, "change": -barrel.price*barrel.quantity}
+        )
+            
     print(f"barrels delivered: {barrels_delivered} order_id: {order_id}")
     return "OK"
 @router.post("/plan")

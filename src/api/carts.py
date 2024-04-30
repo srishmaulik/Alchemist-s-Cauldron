@@ -4,6 +4,7 @@ from src.api import auth
 from enum import Enum
 import sqlalchemy
 from src import database as db
+import datetime
 
 
 global_cart_id = 0
@@ -94,6 +95,17 @@ def create_cart(new_cart: Customer):
         # Insert the new cart_id into the carts table
         cart_id = connection.execute(
             sqlalchemy.text("INSERT INTO carts DEFAULT VALUES RETURNING cart_id")).scalar_one()
+        connection.execute(
+            sqlalchemy.text(
+                "INSERT INTO accounts (customer_name, character_class, level) "
+                "VALUES (:customer_name, :character_class, :level)"
+            ),
+            {
+                "customer_name": new_cart.customer_name,
+                "character_class": new_cart.character_class,
+                "level": new_cart.level,
+            }
+        )
         
         # Return the generated cart_id
         return {"cart_id": cart_id}
@@ -106,23 +118,6 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
     
     with db.engine.begin() as connection:
-        # Check if the cart exists
-        cart_exists = connection.execute(
-            sqlalchemy.text("SELECT EXISTS(SELECT 1 FROM carts WHERE cart_id = :cart_id)"),
-            {"cart_id": cart_id}
-        ).fetchone()[0]
-        
-        # Query the maximum existing cart_item_id for the cart_id
-        last_cart_id = connection.execute(
-            sqlalchemy.text("SELECT cart_id FROM carts ORDER BY cart_id DESC LIMIT 1")
-        ).scalar()
-        
-        # Increment the last cart_id by one to get the new cart_id
-        cart_item_id = last_cart_id + 1 if last_cart_id is not None else 1
-        
-        # If no rows exist for the specified cart_id, set cart_item_id to 1
-        
-        
         # Query the potion_id based on the item_sku
         potion_id_query = sqlalchemy.text(
             "SELECT potion_id FROM potions WHERE item_sku = :item_sku"
@@ -133,10 +128,10 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         # Insert the item into cart_items
         connection.execute(
             sqlalchemy.text(
-                "INSERT INTO cart_items (cart_item_id, cart_id, potion_id, quantity) "
-                "VALUES (:cart_item_id, :cart_id, :potion_id, :quantity)"
+                "INSERT INTO cart_items (cart_id, potion_id, quantity) "
+                "VALUES (:cart_id, :potion_id, :quantity)"
             ),
-            {"cart_item_id": cart_item_id, "cart_id": cart_id, "potion_id": potion_id, "quantity": cart_item.quantity}
+            {"cart_id": cart_id, "potion_id": potion_id, "quantity": cart_item.quantity}
         )
         
     return "OK"
@@ -155,6 +150,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             {"cart_id": cart_id}
         ).fetchall()
         total_price = 0
+        quantity = 0
         for item in items:
             quantity = item.quantity
             
@@ -181,13 +177,40 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 sqlalchemy.text("DELETE FROM cart_items WHERE cart_id = :cart_id"),
                 {"cart_id": cart_id}
             )
+            transaction_description = f"Purchased items from cart {cart_id}"
+            transaction_id = connection.execute(
+            sqlalchemy.text("INSERT INTO account_transactions (created_at, description) "
+                            "VALUES (:created_at, :description) RETURNING id"),
+            {"created_at": datetime.datetime.now(), "description": transaction_description}
+        ).scalar_one()
+
+        connection.execute(
+           sqlalchemy.text("INSERT INTO potion_ledger_entries (transaction_id, potion_id, quantity) "
+         "VALUES (:transaction_id, :potion_id, :quantity_change)"),
+    {"transaction_id": transaction_id, "potion_id": item.potion_id, "quantity_change": -quantity}
+)
             
             # Update global inventory
-            sql_update_statement = f"""
-                UPDATE global_inventory
-                SET gold = gold + {potion_details.price * quantity}
-            """
-            connection.execute(sqlalchemy.text(sql_update_statement))
+        sql_update_statement = f"""
+            UPDATE global_inventory
+            SET gold = gold + {potion_details.price * quantity}
+        """
+        connection.execute(sqlalchemy.text(sql_update_statement))
+        
+        
+        # Record ledger entries in account_ledger_entries table
+        # Assuming the user paid with gold, you decrease their gold balance
+        account_id = connection.execute(sqlalchemy.text("SELECT account_id FROM accounts ORDER BY account_id DESC LIMIT 1")).scalar()
+
+        connection.execute(
+            sqlalchemy.text("INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
+                            "VALUES (:account_id, :transaction_id, :change)"),
+            {"account_id": account_id, "transaction_id": transaction_id, "change": total_price}
+        )
+
+
+        
+        
 
     return {"total_potions_bought": quantity , "total_gold_paid": total_price}
     
