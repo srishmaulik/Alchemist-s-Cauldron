@@ -27,7 +27,7 @@ def get_inventory():
         ml_in_barrels_result = connection.execute(ml_in_barrels_query).fetchone()
 
         # Query to get the amount of gold
-        gold_query = sqlalchemy.text("SELECT SUM(change) FROM account_ledger_entries")
+        gold_query = sqlalchemy.text("SELECT COALESCE(SUM(change),0) FROM account_ledger_entries")
         gold_result = connection.execute(gold_query).scalar()
 
         # Construct the response

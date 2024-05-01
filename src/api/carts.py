@@ -155,12 +155,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             quantity = item.quantity
             
             # Fetch potion details
-            potion_details = connection.execute(
-                sqlalchemy.text("SELECT * FROM potions WHERE potion_id = :potion_id"),
+            potion_price = connection.execute(
+                sqlalchemy.text("SELECT price FROM potions WHERE potion_id = :potion_id"),
                 {"potion_id": item.potion_id}  # Provide the potion_id value
-            ).fetchone()
+            ).scalar_one()
 
-            total_price += potion_details.price * quantity
+            total_price += potion_price * quantity
             
             # Update potion quantity
             
