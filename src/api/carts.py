@@ -163,14 +163,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             total_price += potion_details.price * quantity
             
             # Update potion quantity
-            connection.execute(
-                sqlalchemy.text(
-                    "UPDATE potions "
-                    "SET quantity = quantity - :quantity "
-                    "WHERE potion_id = :potion_id"
-                ),
-                {"quantity": quantity, "potion_id": item.potion_id}
-            )
+            
             
             # Remove items from the cart
             connection.execute(
@@ -191,12 +184,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 )
             
             # Update global inventory
-        sql_update_statement = f"""
-            UPDATE global_inventory
-            SET gold = gold + {potion_details.price * quantity}
-        """
-        connection.execute(sqlalchemy.text(sql_update_statement))
-        
+       
         
         # Record ledger entries in account_ledger_entries table
         # Assuming the user paid with gold, you decrease their gold balance
@@ -207,7 +195,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                             "VALUES (:account_id, :transaction_id, :change)"),
             {"account_id": account_id, "transaction_id": transaction_id, "change": total_price}
         )
-
+        
 
         
         
