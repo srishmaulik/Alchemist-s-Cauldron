@@ -47,5 +47,8 @@ def get_catalog():
                         "price": price,
                         "potion_type": [red_ml, green_ml, blue_ml, 0]
                     })
+                    if len(catalog)==6:
+                        break
+
     return catalog
        
