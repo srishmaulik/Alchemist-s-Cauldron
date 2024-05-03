@@ -22,11 +22,6 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
         
         for potion in potions_delivered:
             # Update global inventory
-            
-            connection.execute(
-    sqlalchemy.text("INSERT INTO barrel_ledgers (green_ml, red_ml, blue_ml) VALUES (:green_ml, :red_ml, :blue_ml)"),
-    {"green_ml": -potion.potion_type[1], "red_ml": -potion.potion_type[0], "blue_ml": -potion.potion_type[2]}
-)
 
             # Generate potion name
             
@@ -47,6 +42,10 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             
             elif potion.potion_type == [34,33,33,0]:
                 item_sku = "Treble"
+            elif potion.potion_type == [25,25,25,25]:
+                item_sku = "Fourden"
+            elif potion.potion_type == [0,0,0,100]:
+                item_sku = "Dark_knight"
             
             # Check if the potion already exists in the database
             
@@ -54,8 +53,8 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                 # If the potion already exists, update the quantity by incrementing it by 1
             
             connection.execute(
-                sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml)" "VALUES(:red_ml, :green_ml, :blue_ml)"),
-                {"red_ml": -potion.potion_type[0], "green_ml": -potion.potion_type[1], "blue_ml":-potion.potion_type[2]}
+                sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml)" "VALUES(:red_ml, :green_ml, :blue_ml, :dark_ml, :dark_ml)"),
+                {"red_ml": -potion.potion_type[0]*potion.quantity, "green_ml": -potion.potion_type[1]*potion.quantity, "blue_ml":-potion.potion_type[2]*potion.quantity, "dark_ml": -potion.potion_type[3]*potion.quantity}
             )
             connection.execute(sqlalchemy.text("INSERT INTO potion_ledger_entries(potion_id, quantity)" "VALUES(:potion_id, :quantity)"),{"potion_id": potion_id, "quantity": potion.quantity})
                 # If the potion does not exist, insert a new row with quantity 1
@@ -76,12 +75,22 @@ def get_bottle_plan():
     
     with db.engine.begin() as connection:
          # Fetch the current inventory of green ml from the global inventory table
-        ml_inventory = connection.execute(sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml) FROM barrel_ledgers")).fetchone()
+        ml_inventory = connection.execute(sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")).fetchone()
         if ml_inventory:
-            num_red_ml, num_green_ml, num_blue_ml = ml_inventory    
+            num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = ml_inventory    
 
-            while num_red_ml+num_green_ml+num_blue_ml>100:
-                if num_red_ml == 0 and num_green_ml>=50 and num_blue_ml>=50:
+            while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>100:
+
+                if num_dark_ml>=100:
+                    plan.append({"potion_type": [0,0,0,100]})
+                    num_dark_ml-=100
+                elif num_dark_ml>=25 and num_blue_ml>=25 and num_green_ml>=25 and num_red_ml>=25:
+                    plan.append({"potion_type": [25, 25, 25, 25], "quantity": 1})
+                    num_green_ml-=25
+                    num_blue_ml-=25
+                    num_dark_ml -=25
+                    num_red_ml -=25
+                elif num_red_ml == 0 and num_green_ml>=50 and num_blue_ml>=50:
                     plan.append({"potion_type": [0, 50, 50, 0], "quantity": 1})
                     num_green_ml-=50
                     num_blue_ml-=50
