@@ -48,8 +48,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             
             elif potion.potion_type == [34,33,33,0]:
                 item_sku = "Treble"
-            elif potion.potion_type == [25,25,25,25]:
-                item_sku = "Fourden"
+            
             elif potion.potion_type == [0,0,0,100]:
                 item_sku = "Dark_knight"
             
