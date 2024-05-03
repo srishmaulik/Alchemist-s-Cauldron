@@ -26,7 +26,7 @@ def reset():
         connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger_entries RESTART IDENTITY CASCADE"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE global_inventory RESTART IDENTITY CASCADE"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE accounts RESTART IDENTITY CASCADE"))
-        connection.execute(sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml)""VALUES(:red_ml, :green_ml, :blue_ml)"), {"red_ml": 0, "green_ml":0, "blue_ml": 0})
+        connection.execute(sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml, dark_ml)""VALUES(:red_ml, :green_ml, :blue_ml, :dark_ml)"), {"red_ml": 0, "green_ml":0, "blue_ml": 0, "dark_ml": 0})
         connection.execute(
         sqlalchemy.text(
             "INSERT INTO accounts (customer_name, character_class, level) "

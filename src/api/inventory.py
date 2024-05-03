@@ -23,7 +23,7 @@ def get_inventory():
         num_potions_result = connection.execute(num_potions_query).scalar()
 
         # Query to get the milliliters of each color in barrels
-        ml_in_barrels_query = sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml) FROM barrel_ledgers")
+        ml_in_barrels_query = sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")
         ml_in_barrels_result = connection.execute(ml_in_barrels_query).fetchone()
 
         # Query to get the amount of gold
@@ -49,7 +49,7 @@ def get_capacity_plan():
     with db.engine.begin() as connection:
         num_potions_query = sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries")
         num_potions_result = connection.execute(num_potions_query).scalar()
-        ml_in_barrels_query = sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml) FROM barrel_ledgers")
+        ml_in_barrels_query = sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")
         ml_in_barrels_result = connection.execute(ml_in_barrels_query).fetchone()
         gold_query = sqlalchemy.text("SELECT SUM(change) FROM account_ledger_entries")
         gold_result = connection.execute(gold_query).scalar()
