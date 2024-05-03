@@ -14,7 +14,8 @@ router = APIRouter(
     tags=["inventory"],
     dependencies=[Depends(auth.get_api_key)],
 )
-
+initial_potion_capacity = 1
+initial_ml_capacity =1
 @router.get("/audit")
 def get_inventory():
     with db.engine.begin() as connection:
@@ -87,6 +88,7 @@ def deliver_capacity_plan(capacity_purchase: CapacityPurchase, order_id: int):
     gold_to_be_subtracted = 0
     with db.engine.begin() as connection:
         # Get current gold balance from the account ledger
+        global initial_potion_capacity, initial_ml_capacity
         gold_query = "SELECT SUM(change) FROM account_ledger_entries"
         gold_balance = connection.execute(sqlalchemy.text(gold_query)).scalar()
 
