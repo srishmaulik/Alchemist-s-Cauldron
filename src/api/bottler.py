@@ -53,7 +53,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                 # If the potion already exists, update the quantity by incrementing it by 1
             
             connection.execute(
-                sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml)" "VALUES(:red_ml, :green_ml, :blue_ml, :dark_ml, :dark_ml)"),
+                sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml, dark_ml)" "VALUES(:red_ml, :green_ml, :blue_ml, :dark_ml)"),
                 {"red_ml": -potion.potion_type[0]*potion.quantity, "green_ml": -potion.potion_type[1]*potion.quantity, "blue_ml":-potion.potion_type[2]*potion.quantity, "dark_ml": -potion.potion_type[3]*potion.quantity}
             )
             connection.execute(sqlalchemy.text("INSERT INTO potion_ledger_entries(potion_id, quantity)" "VALUES(:potion_id, :quantity)"),{"potion_id": potion_id, "quantity": potion.quantity})
