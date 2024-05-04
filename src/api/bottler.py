@@ -84,7 +84,7 @@ def get_bottle_plan():
         if ml_inventory:
             num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = ml_inventory    
 
-            while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>100:
+            while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>=100:
                 if num_red_ml>0 and num_blue_ml>0 and num_green_ml>0:
                     if num_red_ml>=34 and num_green_ml>=33 and num_blue_ml>=33:
                         plan.append({"potion_type": [34, 33, 33, 0], "quantity": 1})
