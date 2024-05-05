@@ -47,7 +47,9 @@ def get_capacity_plan():
     Start with 1 capacity for 50 potions and 1 capacity for 10000 ml of potion. Each additional 
     capacity unit costs 1000 gold.
     """
+
     with db.engine.begin() as connection:
+        global initial_potion_capacity, initial_ml_capacity
         num_potions_query = sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries")
         num_potions_result = connection.execute(num_potions_query).scalar()
         ml_in_barrels_query = sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")
@@ -57,11 +59,12 @@ def get_capacity_plan():
         
         total_ml = ml_in_barrels_result[0] + ml_in_barrels_result[1] + ml_in_barrels_result[2]
         while total_ml > 10000 and num_potions_result > 50 and gold_result >= 1000:
-            initial_potion_capacity += 1
+            
             initial_ml_capacity += 1
             total_ml -= 10000
             num_potions_result -= 50
             gold_result -= 1000
+            initial_potion_capacity += 1
 
             # Query to get the milliliters of each color in barrels
         
