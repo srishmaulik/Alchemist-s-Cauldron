@@ -162,10 +162,6 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
             total_price += potion_price * quantity
             
-            # Update potion quantity
-            
-            
-            # Remove items from the cart
             connection.execute(
                 sqlalchemy.text("DELETE FROM cart_items WHERE cart_id = :cart_id"),
                 {"cart_id": cart_id}
@@ -176,25 +172,22 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                             "VALUES (:created_at, :description) RETURNING id"),
             {"created_at": datetime.datetime.now(), "description": transaction_description}
         ).scalar_one()
+            if transaction_id is not None:
 
-        connection.execute(
-           sqlalchemy.text("INSERT INTO potion_ledger_entries (transaction_id, potion_id, quantity) "
-         "VALUES (:transaction_id, :potion_id, :quantity_change)"),
-    {"transaction_id": transaction_id, "potion_id": item.potion_id, "quantity_change": -quantity}
-)
-            
-            # Update global inventory
-       
-        
-        # Record ledger entries in account_ledger_entries table
-        # Assuming the user paid with gold, you decrease their gold balance
-        account_id = connection.execute(sqlalchemy.text("SELECT account_id FROM accounts ORDER BY account_id DESC LIMIT 1")).scalar()
-
-        connection.execute(
-            sqlalchemy.text("INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
-                            "VALUES (:account_id, :transaction_id, :change)"),
-            {"account_id": account_id, "transaction_id": transaction_id, "change": total_price}
+                connection.execute(
+                sqlalchemy.text("INSERT INTO potion_ledger_entries (transaction_id, potion_id, quantity) "
+                "VALUES (:transaction_id, :potion_id, :quantity_change)"),
+                {"transaction_id": transaction_id, "potion_id": item.potion_id, "quantity_change": -quantity}
         )
+            
+            
+            account_id = connection.execute(sqlalchemy.text("SELECT account_id FROM accounts ORDER BY account_id DESC LIMIT 1")).scalar()
+
+            connection.execute(
+                sqlalchemy.text("INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
+                                "VALUES (:account_id, :transaction_id, :change)"),
+                {"account_id": account_id, "transaction_id": transaction_id, "change": total_price}
+            )
         
 
         
