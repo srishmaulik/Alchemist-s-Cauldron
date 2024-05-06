@@ -16,6 +16,11 @@ router = APIRouter(
 )
 initial_potion_capacity = 1
 initial_ml_capacity =1
+def reset_globals():
+    global initial_ml_capacity, initial_potion_capacity
+    initial_ml_capacity=1
+    initial_potion_capacity = 1
+
 @router.get("/audit")
 def get_inventory():
     with db.engine.begin() as connection:
@@ -58,13 +63,19 @@ def get_capacity_plan():
         gold_result = connection.execute(gold_query).scalar()
         
         total_ml = ml_in_barrels_result[0] + ml_in_barrels_result[1] + ml_in_barrels_result[2]
-        while total_ml > 10000 and num_potions_result > 50 and gold_result >= 1000:
+        while gold_result >= 1000:
             
-            initial_ml_capacity += 1
-            total_ml -= 10000
-            num_potions_result -= 50
-            gold_result -= 1000
-            initial_potion_capacity += 1
+            if total_ml>=1000:
+                initial_ml_capacity += 1
+                total_ml -= 10000
+                gold_result -= 1000
+            if num_potions_result>=50 and gold_result>=1000:
+                num_potions_result -= 50
+                initial_potion_capacity += 1
+                gold_result -= 1000
+            
+            
+            
 
             # Query to get the milliliters of each color in barrels
         
@@ -94,31 +105,33 @@ def deliver_capacity_plan(capacity_purchase: CapacityPurchase, order_id: int):
         global initial_potion_capacity, initial_ml_capacity
         gold_query = "SELECT SUM(change) FROM account_ledger_entries"
         gold_balance = connection.execute(sqlalchemy.text(gold_query)).scalar()
+        gold_to_be_subtracted = (capacity_purchase.potion_capacity-1)*1000 + (capacity_purchase.ml_capacity-1)*1000
 
         # Check if there is enough gold to purchase additional capacity
-        while (capacity_purchase.potion_capacity > 1 or capacity_purchase.ml_capacity > 1) and gold_balance >= 1000:
-            capacity_purchase.potion_capacity -= 1
-            capacity_purchase.ml_capacity -= 1
-            gold_balance -= 1000
-            gold_to_be_subtracted += 1000
+        # while (capacity_purchase.potion_capacity > 1 or capacity_purchase.ml_capacity > 1) and gold_balance >= 1000:
+        #     capacity_purchase.potion_capacity -= 1
+        #     capacity_purchase.ml_capacity -= 1
+        #     gold_balance -= 1000
+        #     gold_to_be_subtracted += 1000
 
         # Update the gold balance in the account ledger
-        sql_update_gold = f"""
-        INSERT INTO account_transactions (created_at, description)
-        VALUES (:created_at, :description)
-        RETURNING id
-        """
-        transaction_id = connection.execute(
-            sqlalchemy.text(sql_update_gold),
-            {"created_at": datetime.datetime.now(), "description": "Capacity purchase"}
-        ).scalar_one()
+        if gold_balance>=gold_to_be_subtracted:
+            sql_update_gold = f"""
+            INSERT INTO account_transactions (created_at, description)
+            VALUES (:created_at, :description)
+            RETURNING id
+            """
+            transaction_id = connection.execute(
+                sqlalchemy.text(sql_update_gold),
+                {"created_at": datetime.datetime.now(), "description": "Capacity purchase"}
+            ).scalar_one()
 
-        connection.execute(
-            sqlalchemy.text(
-                "INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
-                "VALUES (:account_id, :transaction_id, :change)"
-            ),
-            {"account_id": 1, "transaction_id": transaction_id, "change": -gold_to_be_subtracted}
-        )
+            connection.execute(
+                sqlalchemy.text(
+                    "INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
+                    "VALUES (:account_id, :transaction_id, :change)"
+                ),
+                {"account_id": 1, "transaction_id": transaction_id, "change": -gold_to_be_subtracted}
+            )
 
     return "OK"
