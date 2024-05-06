@@ -69,12 +69,18 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         )
         gold = connection.execute(gold_balance_query).scalar_one()
         all_inventory = connection.execute(sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")).fetchone()
-        
         num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = all_inventory
+        all_potions_query = sqlalchemy.text(
+                "SELECT p.item_sku, SUM(ple.quantity) AS total_quantity "
+                "FROM potion_ledger_entries AS ple "
+                "JOIN potions AS p ON ple.potion_id = p.potion_id "
+                "GROUP BY p.item_sku"
+            )
+        #all_potions_result = connection.execute(all_potions_query)
+
         for barrel in wholesale_catalog:
             if gold >= barrel.price:
 
-                
                 if gold <= 200:
                 
                     if barrel.sku[:4] == "MINI":
@@ -94,14 +100,20 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                             })
                             gold -= barrel.price
                 else:
+                    #if (barrel.potion_type == [1,0,0,0] and num_red_ml>500):
                     if barrel.price <= 500:
-                        purchase_plan.append({
-                            "sku": barrel.sku,
-                            "quantity": 1
-                        })
+                        if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
+                            continue
+                        else:
+                            purchase_plan.append({
+                                "sku": barrel.sku,
+                                "quantity": 1
+                            })
                         gold -= barrel.price
                     else:
-                        if barrel.price<=(gold//2):
+                        if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
+                            continue
+                        elif barrel.price<=(gold//2):
                             purchase_plan.append({
                             "sku": barrel.sku,
                             "quantity": 1
