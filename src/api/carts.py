@@ -56,20 +56,89 @@ def search_orders(
     Your results must be paginated, the max results you can return at any
     time is 5 total line items.
     """
+    with db.engine.begin() as connection:
+        page_size = 5
+        current_page = int(search_page) if search_page.isdigit() else 1
+
+        # Calculate offset for pagination
+        offset = (current_page - 1) * page_size
+
+        # Construct base SQL query
+        base_query = """
+            SELECT line_item_id, item_sku, customer_name, line_item_total, timestamp
+            FROM cart_line_items
+        """
+        
+        # Apply dynamic filters
+        filters = []
+        if customer_name:
+            filters.append("LOWER(customer_name) ILIKE :customer_name")
+        if potion_sku:
+            filters.append("LOWER(item_sku) ILIKE :potion_sku")
+        
+        where_clause = " AND ".join(filters)
+        if where_clause:
+            base_query += " WHERE " + where_clause
+
+        # Apply sorting
+        order_by = ""
+        if sort_col == search_sort_options.customer_name:
+            order_by = "customer_name"
+        elif sort_col == search_sort_options.item_sku:
+            order_by = "item_sku"
+        elif sort_col == search_sort_options.line_item_total:
+            order_by = "line_item_total"
+        elif sort_col == search_sort_options.timestamp:
+            order_by = "timestamp"
+
+        if order_by:
+            base_query += f" ORDER BY {order_by} {'ASC' if sort_order == search_sort_order.asc else 'DESC'}"
+
+        # Apply pagination
+        base_query += f" LIMIT {page_size} OFFSET {offset}"
+
+        # Execute the SQL query
+        search_results = connection.execute(sqlalchemy.text(base_query), {"customer_name": f"%{customer_name}%", "potion_sku": f"%{potion_sku}%"})
+
+        # Format the search results
+        results = [
+            {
+                "line_item_id": row[0],
+                "item_sku": row[1],
+                "customer_name": row[2],
+                "line_item_total": row[3],
+                "timestamp": row[4].isoformat(),
+            }
+            for row in search_results
+        ]
+
+        # Check if there are more results
+        has_more = len(results) == page_size
+        next_page = current_page + 1 if has_more else None
 
     return {
-        "previous": "",
-        "next": "",
-        "results": [
-            {
-                "line_item_id": 1,
-                "item_sku": "1 oblivion potion",
-                "customer_name": "Scaramouche",
-                "line_item_total": 50,
-                "timestamp": "2021-01-01T00:00:00Z",
-            }
-        ],
+        "previous": None if current_page == 1 else current_page - 1,
+        "next": next_page,
+        "results": results
     }
+
+    # Add dynamic filters based on provided parameters
+    
+
+
+    # return {
+    #     "previous": "",
+    #     "next": "",
+    #     "results": [
+    #         {
+    #             "line_item_id": 1,
+    #             "item_sku": "1 oblivion potion",
+    #             "customer_name": "Scaramouche",
+    #             "line_item_total": 50,
+    #             "timestamp": "2021-01-01T00:00:00Z",
+    #         }
+    #     ],
+    # }
 
 
 class Customer(BaseModel):
