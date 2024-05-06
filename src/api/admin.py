@@ -3,14 +3,14 @@ from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
-import datetime 
 from .inventory import*
+import datetime 
 router = APIRouter(
     prefix="/admin",
     tags=["admin"],
     dependencies=[Depends(auth.get_api_key)],
 )
-reset_globals()
+
 @router.post("/reset")
 def reset():
     """
@@ -27,7 +27,7 @@ def reset():
         connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger_entries RESTART IDENTITY CASCADE"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE global_inventory RESTART IDENTITY CASCADE"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE accounts RESTART IDENTITY CASCADE"))
-        connection.execute(sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml, dark_ml)""VALUES(:red_ml, :green_ml, :blue_ml, :dark_ml)"), {"red_ml": 0, "green_ml":0, "blue_ml": 0, "dark_ml": 0})
+        connection.execute(sqlalchemy.text("INSERT INTO barrel_ledgers(red_ml, green_ml, blue_ml, dark_ml)""VALUES(:red_ml, :green_ml, :blue_ml, :dark_ml)"), {"red_ml": 0, "green_ml":0, "blue_ml": 0, "dark_ml":0})
         connection.execute(
         sqlalchemy.text(
             "INSERT INTO accounts (customer_name, character_class, level) "
@@ -46,7 +46,7 @@ def reset():
         ).scalar_one()
 
         account_id_result = connection.execute(account_id_query, {"customer_name": "Shop Keeper"}).fetchone()
-        
+        reset_globals()
         if account_id_result:
             account_id = account_id_result[0]
             
@@ -64,4 +64,3 @@ def reset():
         
 
     return "OK"
-
