@@ -80,62 +80,63 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         #all_potions_result = connection.execute(all_potions_query)
 
         for barrel in wholesale_catalog:
-            if gold >= barrel.price:
+            if gold>10000:
+                if gold >= barrel.price:
 
-                if gold <= 200:
-                
-                    if barrel.sku[:4] == "MINI":
-                        if (barrel.potion_type == [1, 0, 0, 0] and num_red_ml < 200) or \
-                            (barrel.potion_type == [0, 1, 0, 0] and num_green_ml < 200) or \
-                            (barrel.potion_type == [0,0,0,1] and num_dark_ml<200) or \
-                            (barrel.potion_type == [0, 0, 1, 0] and num_blue_ml < 200):
-                            if total_ml+barrel.quantity<10000:
-                                purchase_plan.append({
-                                    "sku": barrel.sku,
-                                    "quantity": 1
-                                })
-                                total_ml +=barrel.quantity
-                                gold -=barrel.price
-                    elif barrel.sku[:5] == "SMALL":
-                        if (barrel.potion_type == [1, 0, 0, 0] and num_red_ml < 100) or \
-                            (barrel.potion_type == [0, 1, 0, 0] and num_green_ml < 100) or \
-                            (barrel.potion_type == [0,0,0,1] and num_dark_ml<100) or \
-                            (barrel.potion_type == [0, 0, 1, 0] and num_blue_ml < 100):
-                            if total_ml+barrel.quantity<10000:
-                                purchase_plan.append({
-                                    "sku": barrel.sku,
-                                    "quantity": 1
-                                })
-                                total_ml +=barrel.quantity
-                                gold -=barrel.price
-                            
-                else:
-                    #if (barrel.potion_type == [1,0,0,0] and num_red_ml>500):
-                    if barrel.price <= 500:
-                        if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
-                            continue
-                        else:
-                           if total_ml+barrel.quantity<10000:
-                                purchase_plan.append({
-                                    "sku": barrel.sku,
-                                    "quantity": 1
-                                })
-                                total_ml +=barrel.quantity
-                                gold -=barrel.price
+                    if gold <= 200:
+                    
+                        if barrel.sku[:4] == "MINI":
+                            if (barrel.potion_type == [1, 0, 0, 0] and num_red_ml < 200) or \
+                                (barrel.potion_type == [0, 1, 0, 0] and num_green_ml < 200) or \
+                                (barrel.potion_type == [0,0,0,1] and num_dark_ml<200) or \
+                                (barrel.potion_type == [0, 0, 1, 0] and num_blue_ml < 200):
+                                if total_ml+barrel.quantity<10000:
+                                    purchase_plan.append({
+                                        "sku": barrel.sku,
+                                        "quantity": 1
+                                    })
+                                    total_ml +=barrel.quantity
+                                    gold -=barrel.price
+                        elif barrel.sku[:5] == "SMALL":
+                            if (barrel.potion_type == [1, 0, 0, 0] and num_red_ml < 100) or \
+                                (barrel.potion_type == [0, 1, 0, 0] and num_green_ml < 100) or \
+                                (barrel.potion_type == [0,0,0,1] and num_dark_ml<100) or \
+                                (barrel.potion_type == [0, 0, 1, 0] and num_blue_ml < 100):
+                                if total_ml+barrel.quantity<10000:
+                                    purchase_plan.append({
+                                        "sku": barrel.sku,
+                                        "quantity": 1
+                                    })
+                                    total_ml +=barrel.quantity
+                                    gold -=barrel.price
+                                
                     else:
-                        if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
-                            continue
-                        elif barrel.price<=(gold//2):
-                            if total_ml+barrel.quantity<10000:
-                                purchase_plan.append({
-                                    "sku": barrel.sku,
-                                    "quantity": 1
-                                })
-                                total_ml +=barrel.quantity
-                                gold -=barrel.price
-                            
-                        else: 
-                            continue
+                        #if (barrel.potion_type == [1,0,0,0] and num_red_ml>500):
+                        if barrel.price <= 500:
+                            if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
+                                continue
+                            else:
+                                if total_ml+barrel.quantity<10000:
+                                        purchase_plan.append({
+                                            "sku": barrel.sku,
+                                            "quantity": 1
+                                        })
+                                        total_ml +=barrel.quantity
+                                        gold -=barrel.price
+                        else:
+                            if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
+                                continue
+                            elif barrel.price<=(gold//2):
+                                if total_ml+barrel.quantity<10000:
+                                    purchase_plan.append({
+                                        "sku": barrel.sku,
+                                        "quantity": 1
+                                    })
+                                    total_ml +=barrel.quantity
+                                    gold -=barrel.price
+                                
+                            else: 
+                                continue
     print(wholesale_catalog)
     return purchase_plan
 
