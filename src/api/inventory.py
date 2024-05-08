@@ -63,16 +63,17 @@ def get_capacity_plan():
         gold_result = connection.execute(gold_query).scalar()
         
         total_ml = ml_in_barrels_result[0] + ml_in_barrels_result[1] + ml_in_barrels_result[2]
-        while gold_result >= 1000:
-            
-            if total_ml>10000:
-                initial_ml_capacity += 1
-                total_ml -= 10000
-                gold_result -= 1000
-            if num_potions_result>50 and gold_result>=1000:
-                num_potions_result -= 50
-                initial_potion_capacity += 1
-                gold_result -= 1000
+        if total_ml>10000 or num_potions_result>50:
+            while gold_result >= 1000:
+                
+                if total_ml>10000:
+                    initial_ml_capacity += 1
+                    total_ml -= 10000
+                    gold_result -= 1000
+                if num_potions_result>50 and gold_result>=1000:
+                    num_potions_result -= 50
+                    initial_potion_capacity += 1
+                    gold_result -= 1000
             
             
             
