@@ -111,8 +111,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                                 gold -=barrel.price
                             
                 else:
+                    if barrel.sku[:5] == "LARGE":
+                        continue
                     #if (barrel.potion_type == [1,0,0,0] and num_red_ml>500):
-                    if barrel.price <= 500:
+                    elif barrel.price <= 500:
                         if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
                             continue
                         else:
