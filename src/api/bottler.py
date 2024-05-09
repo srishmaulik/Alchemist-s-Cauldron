@@ -82,10 +82,14 @@ def get_bottle_plan():
          # Fetch the current inventory of green ml from the global inventory table
         ml_inventory = connection.execute(sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")).fetchone()
         potion_inventory = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries")).scalar_one()
+        capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
+        ml_capacity, potion_capacity = capacities
+        
+
         if ml_inventory:
             num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = ml_inventory    
 
-        while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>100 and potion_inventory<50:
+        while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>100 and potion_inventory<50*potion_capacity:
 
             if num_red_ml>0 and num_blue_ml>0 and num_green_ml>0:
                 if num_red_ml>=34 and num_green_ml>=33 and num_blue_ml>=33:
