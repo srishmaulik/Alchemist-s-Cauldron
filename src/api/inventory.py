@@ -61,14 +61,15 @@ def get_capacity_plan():
         ml_in_barrels_result = connection.execute(ml_in_barrels_query).fetchone()
         gold_query = sqlalchemy.text("SELECT SUM(change) FROM account_ledger_entries")
         gold_result = connection.execute(gold_query).scalar()
-        
+        capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
+        ml_capacity, potion_capacity = capacities
         
         if gold_result >= 1000 and ml_in_barrels_result>3000:
-            initial_ml_capacity += 1
+            ml_capacity += 1
             gold_result -= 1000
+            
         if num_potions_result>20 and gold_result>=1000:
-            gold_result >= 1000
-            initial_potion_capacity += 1
+            potion_capacity += 1
             gold_result -= 1000
                 
             
@@ -99,17 +100,20 @@ def deliver_capacity_plan(capacity_purchase: CapacityPurchase, order_id: int):
     gold_to_be_subtracted = 0
     with db.engine.begin() as connection:
         # Get current gold balance from the account ledger
-        global initial_potion_capacity, initial_ml_capacity
+        
         gold_query = "SELECT SUM(change) FROM account_ledger_entries"
         gold_balance = connection.execute(sqlalchemy.text(gold_query)).scalar()
-        gold_to_be_subtracted = (capacity_purchase.potion_capacity-1)*1000 + (capacity_purchase.ml_capacity-1)*1000
+       
+        capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
+        initial_ml_capacity, initial_potion_capacity = capacities
+        if capacity_purchase.ml_capacity>1:
+            connection.execute(sqlalchemy.text("UPDATE global_inventory SET ml_capacity = :ml_capacity"), {"ml_capacity": capacity_purchase.ml_capacity})
+            gold_to_be_subtracted += (capacity_purchase.ml_capacity-initial_ml_capacity)*1000
+        if capacity_purchase.potion_capacity>1:
+            connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = :potion_capacity"))
+            gold_to_be_subtracted += (capacity_purchase.potion_capacity-initial_potion_capacity)*1000
 
-        # Check if there is enough gold to purchase additional capacity
-        # while (capacity_purchase.potion_capacity > 1 or capacity_purchase.ml_capacity > 1) and gold_balance >= 1000:
-        #     capacity_purchase.potion_capacity -= 1
-        #     capacity_purchase.ml_capacity -= 1
-        #     gold_balance -= 1000
-        #     gold_to_be_subtracted += 1000
+
 
         # Update the gold balance in the account ledger
         if gold_balance>=gold_to_be_subtracted:
