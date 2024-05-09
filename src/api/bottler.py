@@ -81,81 +81,79 @@ def get_bottle_plan():
     with db.engine.begin() as connection:
          # Fetch the current inventory of green ml from the global inventory table
         ml_inventory = connection.execute(sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")).fetchone()
-        potion_inventory = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries")).fetchone()
+        potion_inventory = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries")).scalar_one()
         if ml_inventory:
             num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = ml_inventory    
 
-            while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>=100 and potion_inventory<50:
-                if num_red_ml>0 and num_blue_ml>0 and num_green_ml>0:
-                    if num_red_ml>=34 and num_green_ml>=33 and num_blue_ml>=33:
-                        plan.append({"potion_type": [34, 33, 33, 0], "quantity": 1})
-                        num_blue_ml-=33
-                        num_red_ml-=34
-                        num_green_ml-=33
-                        potion_inventory+=1
-                    elif num_red_ml>=20 and num_blue_ml>=40 and num_green_ml>=40:
-                        plan.append({"potion_type": [20, 40, 40, 0], "quantity": 1})
-                        num_blue_ml-=40
-                        num_red_ml-=20
-                        num_green_ml-=40
-                        potion_inventory+=1
-                    elif num_red_ml>=40 and num_green_ml>=40 and num_blue_ml>=20:
-                        plan.append({"potion_type": [40, 40, 20, 0], "quantity": 1})
-                        num_blue_ml-=20
-                        num_red_ml-=40
-                        num_green_ml-=40
-                        potion_inventory+=1
-                    elif num_red_ml>=40 and num_blue_ml>=40 and num_green_ml>=20:
-                        plan.append({"potion_type": [40, 20, 40, 0], "quantity": 1})
-                        num_blue_ml-=40
-                        num_red_ml-=40
-                        num_green_ml-=20
-                        potion_inventory+=1
+        while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>100 and potion_inventory<50:
 
-                else:
-                    if num_dark_ml>=100:
-                        plan.append({"potion_type": [0,0,0,100]})
-                        num_dark_ml-=100
-                        potion_inventory+=1
-                    elif num_dark_ml>=25 and num_blue_ml>=25 and num_green_ml>=25 and num_red_ml>=25:
-                        plan.append({"potion_type": [25, 25, 25, 25], "quantity": 1})
-                        num_green_ml-=25
-                        num_blue_ml-=25
-                        num_dark_ml -=25
-                        num_red_ml -=25
-                        potion_inventory+=1
-                    elif num_red_ml == 0 and num_green_ml>=50 and num_blue_ml>=50:
-                        plan.append({"potion_type": [0, 50, 50, 0], "quantity": 1})
-                        num_green_ml-=50
-                        num_blue_ml-=50
-                        potion_inventory+=1
-                    elif num_red_ml >= 50 and num_green_ml>=50 and num_blue_ml==0:
-                        plan.append({"potion_type": [50, 50, 0, 0], "quantity": 1})
-                        num_green_ml-=50
-                        num_red_ml-=50
-                        potion_inventory+=1
-                    elif num_red_ml >= 50 and num_green_ml==0 and num_blue_ml>=50:
-                        plan.append({"potion_type": [50, 0, 50, 0], "quantity": 1})
-                        num_blue_ml-=50
-                        num_red_ml-=50
-                        potion_inventory+=1
-                    
-                    elif num_red_ml>=100 and num_green_ml==0 and num_blue_ml==0:
-                        plan.append({"potion_type": [100, 0, 0, 0], "quantity": 1})
-                        num_red_ml-=100
-                        potion_inventory+=1
-                    elif num_red_ml==0 and num_green_ml>=100 and num_blue_ml==0:
-                        plan.append({"potion_type": [0, 100, 0, 0], "quantity": 1})
-                        num_green_ml-=100
-                        potion_inventory+=1
-                    elif num_red_ml==0 and num_green_ml==0 and num_blue_ml>=100:
-                        plan.append({"potion_type": [0, 0, 100, 0], "quantity": 1})
-                        num_blue_ml-=100
-                        potion_inventory+=1
+            if num_red_ml>0 and num_blue_ml>0 and num_green_ml>0:
+                if num_red_ml>=34 and num_green_ml>=33 and num_blue_ml>=33:
+                    plan.append({"potion_type": [34, 33, 33, 0], "quantity": 1})
+                    num_blue_ml-=33
+                    num_red_ml-=34
+                    num_green_ml-=33
+                    potion_inventory+=1
+
+                elif num_red_ml>=20 and num_blue_ml>=40 and num_green_ml>=40:
+                    plan.append({"potion_type": [20, 40, 40, 0], "quantity": 1})
+                    num_blue_ml-=40
+                    num_red_ml-=20
+                    num_green_ml-=40
+                    potion_inventory+=1
+
+                elif num_red_ml>=40 and num_green_ml>=40 and num_blue_ml>=20:
+                    plan.append({"potion_type": [40, 40, 20, 0], "quantity": 1})
+                    num_blue_ml-=20
+                    num_red_ml-=40
+                    num_green_ml-=40
+                    potion_inventory+=1
+
+                elif num_red_ml>=40 and num_blue_ml>=40 and num_green_ml>=20:
+                    plan.append({"potion_type": [40, 20, 40, 0], "quantity": 1})
+                    num_blue_ml-=40
+                    num_red_ml-=40
+                    num_green_ml-=20
+                    potion_inventory+=1
+
+            else:
+                if num_dark_ml>=100:
+                    plan.append({"potion_type": [0,0,0,100]})
+                    num_dark_ml-=100
+                    potion_inventory+=1
+                
+                elif num_red_ml == 0 and num_green_ml>=50 and num_blue_ml>=50:
+                    plan.append({"potion_type": [0, 50, 50, 0], "quantity": 1})
+                    num_green_ml-=50
+                    num_blue_ml-=50
+                    potion_inventory+=1
+                elif num_red_ml >= 50 and num_green_ml>=50 and num_blue_ml==0:
+                    plan.append({"potion_type": [50, 50, 0, 0], "quantity": 1})
+                    num_green_ml-=50
+                    num_red_ml-=50
+                    potion_inventory+=1
+                elif num_red_ml >= 50 and num_green_ml==0 and num_blue_ml>=50:
+                    plan.append({"potion_type": [50, 0, 50, 0], "quantity": 1})
+                    num_blue_ml-=50
+                    num_red_ml-=50
+                    potion_inventory+=1
+                
+                elif num_red_ml>=100 and num_green_ml==0 and num_blue_ml==0:
+                    plan.append({"potion_type": [100, 0, 0, 0], "quantity": 1})
+                    num_red_ml-=100
+                    potion_inventory+=1
+                elif num_red_ml==0 and num_green_ml>=100 and num_blue_ml==0:
+                    plan.append({"potion_type": [0, 100, 0, 0], "quantity": 1})
+                    num_green_ml-=100
+                    potion_inventory+=1
+                elif num_red_ml==0 and num_green_ml==0 and num_blue_ml>=100:
+                    plan.append({"potion_type": [0, 0, 100, 0], "quantity": 1})
+                    num_blue_ml-=100
+                    potion_inventory+=1
             
             
-        print(plan)
-        return plan
+    print(plan)
+    return plan
 
 
 if __name__ == "__main__":
