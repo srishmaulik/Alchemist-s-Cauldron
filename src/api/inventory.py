@@ -64,11 +64,11 @@ def get_capacity_plan():
         capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
         ml_capacity, potion_capacity = capacities
         
-        if gold_result >= 1000 and ml_in_barrels_result>3000:
+        if gold_result >= 1000:
             ml_capacity += 1
             gold_result -= 1000
             
-        if num_potions_result>20 and gold_result>=1000:
+        if gold_result>=1000:
             potion_capacity += 1
             gold_result -= 1000
                 
