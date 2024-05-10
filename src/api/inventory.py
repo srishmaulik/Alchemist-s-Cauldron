@@ -82,8 +82,8 @@ def get_capacity_plan():
         # Calculate the maximum number of potions and ml of potion the shop can currently store
         
     return {
-        "potion_capacity": initial_potion_capacity,
-        "ml_capacity": initial_ml_capacity
+        "potion_capacity": potion_capacity,
+        "ml_capacity": ml_capacity
         }
 
 class CapacityPurchase(BaseModel):
