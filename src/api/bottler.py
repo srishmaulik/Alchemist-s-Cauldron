@@ -85,75 +85,118 @@ def get_bottle_plan():
         capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
         ml_capacity, potion_capacity = capacities
         
+        all_potions_query = sqlalchemy.text(
+    """SELECT p.item_sku as name, COALESCE(SUM(pl.quantity), 0) AS total_quantity
+       FROM potions p
+       LEFT JOIN potion_ledger_entries pl ON p.potion_id = pl.potion_id
+       GROUP BY p.potion_id
+       ORDER BY p.potion_id"""
+)
+
+# Execute the SQL query and fetch all results
+        potion_result = connection.execute(all_potions_query).fetchall()
+
+        # Create a dictionary to store potion data
+        potion_data = {}
+
+        # Iterate over the query result and populate the dictionary
+        for row in potion_result:
+            potion_name = row[0]  # Access the first element of the tuple (name)
+            quantity = row[1]     # Access the second element of the tuple (total_quantity)
+            potion_data[potion_name] = quantity
+
+        whites = potion_data["Whitey_Houston"]+ potion_data["Treble"]+potion_data["white_boi"]+potion_data["Whitey_tidy"]
+
 
         if ml_inventory:
             num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = ml_inventory    
 
-        while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>100 and potion_inventory<50*potion_capacity:
+        while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>200 and potion_inventory<50*potion_capacity:
 
-            if num_red_ml>0 and num_blue_ml>0 and num_green_ml>0:
-                if num_red_ml>=34 and num_green_ml>=33 and num_blue_ml>=33:
+            if num_red_ml>=20 and num_blue_ml>=20 and num_green_ml>=20 and whites<(15*potion_capacity):
+
+                if num_red_ml>=34 and num_green_ml>=33 and num_blue_ml>=33 and potion_data["Treble"]<10:
                     plan.append({"potion_type": [34, 33, 33, 0], "quantity": 1})
                     num_blue_ml-=33
                     num_red_ml-=34
                     num_green_ml-=33
                     potion_inventory+=1
+                    whites+=1
+                    potion_data["Treble"]+=1
 
-                elif num_red_ml>=20 and num_blue_ml>=40 and num_green_ml>=40:
+                elif num_red_ml>=20 and num_blue_ml>=40 and num_green_ml>=40 and potion_data["Whitey_Houston"]<10:
                     plan.append({"potion_type": [20, 40, 40, 0], "quantity": 1})
                     num_blue_ml-=40
                     num_red_ml-=20
                     num_green_ml-=40
                     potion_inventory+=1
+                    whites+=1
+                    potion_data["Whitey_Houston"]+=1
 
-                elif num_red_ml>=40 and num_green_ml>=40 and num_blue_ml>=20:
+                elif num_red_ml>=40 and num_green_ml>=40 and num_blue_ml>=20 and potion_data["Whitey_tidy"]<10:
                     plan.append({"potion_type": [40, 40, 20, 0], "quantity": 1})
                     num_blue_ml-=20
                     num_red_ml-=40
                     num_green_ml-=40
                     potion_inventory+=1
+                    whites+=1
+                    potion_data["Whitey_tidy"] +=1
 
-                elif num_red_ml>=40 and num_blue_ml>=40 and num_green_ml>=20:
+                elif num_red_ml>=40 and num_blue_ml>=40 and num_green_ml>=20 and potion_data["white_boi"]<10:
                     plan.append({"potion_type": [40, 20, 40, 0], "quantity": 1})
                     num_blue_ml-=40
                     num_red_ml-=40
                     num_green_ml-=20
                     potion_inventory+=1
-
+                    whites+=1
+                    potion_data["white_boi"]+=1
             else:
-                if num_dark_ml>=100:
+    
+                if num_dark_ml>=100 and potion_data["Dark_knight"]<=5:
                     plan.append({"potion_type": [0,0,0,100]})
                     num_dark_ml-=100
                     potion_inventory+=1
-                
-                elif num_red_ml == 0 and num_green_ml>=50 and num_blue_ml>=50:
-                    plan.append({"potion_type": [0, 50, 50, 0], "quantity": 1})
-                    num_green_ml-=50
-                    num_blue_ml-=50
-                    potion_inventory+=1
-                elif num_red_ml >= 50 and num_green_ml>=50 and num_blue_ml==0:
+                    potion_data["Dark_knight"]+=1
+
+                elif num_red_ml >= 50 and num_green_ml>=50 and potion_data["Brownie"]<=15*potion_capacity:
                     plan.append({"potion_type": [50, 50, 0, 0], "quantity": 1})
                     num_green_ml-=50
                     num_red_ml-=50
                     potion_inventory+=1
-                elif num_red_ml >= 50 and num_green_ml==0 and num_blue_ml>=50:
+                    potion_data["Brownie"]+=1
+
+                elif num_red_ml >= 50 and num_blue_ml>=50 and potion_data["Purplie"]<=15*potion_capacity:
                     plan.append({"potion_type": [50, 0, 50, 0], "quantity": 1})
                     num_blue_ml-=50
                     num_red_ml-=50
                     potion_inventory+=1
+                    potion_data["Purplie"]+=1
                 
-                elif num_red_ml>=100 and num_green_ml==0 and num_blue_ml==0:
+                elif num_green_ml>=50 and num_blue_ml>=50 and potion_data["Yellow_mellow"]<=3*potion_capacity:
+                    plan.append({"potion_type": [0, 50, 50, 0], "quantity": 1})
+                    num_green_ml-=50
+                    num_blue_ml-=50
+                    potion_inventory+=1
+                    potion_data["Yellow_mellow"]+=1
+                
+                
+                elif num_red_ml>=100 and potion_data["Reddy_teddy"]<=15*potion_capacity:
                     plan.append({"potion_type": [100, 0, 0, 0], "quantity": 1})
                     num_red_ml-=100
                     potion_inventory+=1
-                elif num_red_ml==0 and num_green_ml>=100 and num_blue_ml==0:
+                    potion_data["Reddy_teddy"]+=1
+
+                elif num_green_ml>=100 and potion_data["Greeny_dreamy"]<=15*potion_capacity:
                     plan.append({"potion_type": [0, 100, 0, 0], "quantity": 1})
                     num_green_ml-=100
                     potion_inventory+=1
-                elif num_red_ml==0 and num_green_ml==0 and num_blue_ml>=100:
+                    potion_data["Greeny_dreamy"]+=1
+
+                elif num_blue_ml>=100 and potion_data["Blue_berry"]<=15*potion_capacity:
                     plan.append({"potion_type": [0, 0, 100, 0], "quantity": 1})
                     num_blue_ml-=100
                     potion_inventory+=1
+                    potion_data["Blue_berry"]+=1
             
             
     print(plan)

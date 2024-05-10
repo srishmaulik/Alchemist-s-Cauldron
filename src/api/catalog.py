@@ -14,7 +14,6 @@ def get_catalog():
     Each unique item combination must have only a single price.
     """
     catalog = []
-    potions_to_sell={}
 
     with db.engine.begin() as connection:
         # Query to sum the quantity for each potion type
