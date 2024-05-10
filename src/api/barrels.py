@@ -73,17 +73,13 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         total_ml = num_red_ml+num_green_ml+num_blue_ml+num_dark_ml
         capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
         ml_capacity, potion_capacity = capacities
-        all_potions_query = sqlalchemy.text(
-                "SELECT p.item_sku, SUM(ple.quantity) AS total_quantity "
-                "FROM potion_ledger_entries AS ple "
-                "JOIN potions AS p ON ple.potion_id = p.potion_id "
-                "GROUP BY p.item_sku"
-            )
+        
+
         #all_potions_result = connection.execute(all_potions_query)
 
         for barrel in wholesale_catalog:
            
-            if gold >= barrel.price:
+            if gold > barrel.price and total_ml+barrel.ml_per_barrel<=10000*ml_capacity:
 
                 if gold <= 200:
                 
@@ -92,19 +88,20 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                             (barrel.potion_type == [0, 1, 0, 0] and num_green_ml < 200) or \
                             (barrel.potion_type == [0,0,0,1] and num_dark_ml<200) or \
                             (barrel.potion_type == [0, 0, 1, 0] and num_blue_ml < 200):
-                            if total_ml+barrel.ml_per_barrel<10000*ml_capacity:
+            
                                 purchase_plan.append({
                                     "sku": barrel.sku,
                                     "quantity": 1
                                 })
                                 total_ml +=barrel.ml_per_barrel
                                 gold -=barrel.price
+
                     elif barrel.sku[:5] == "SMALL":
                         if (barrel.potion_type == [1, 0, 0, 0] and num_red_ml < 100) or \
                             (barrel.potion_type == [0, 1, 0, 0] and num_green_ml < 100) or \
                             (barrel.potion_type == [0,0,0,1] and num_dark_ml<100) or \
                             (barrel.potion_type == [0, 0, 1, 0] and num_blue_ml < 100):
-                            if total_ml+barrel.ml_per_barrel<10000*ml_capacity:
+                            
                                 purchase_plan.append({
                                     "sku": barrel.sku,
                                     "quantity": 1
@@ -113,25 +110,21 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                                 gold -=barrel.price
                             
                 else:
-                    if barrel.sku[:5] == "LARGE":
-                        continue
-                    #if (barrel.potion_type == [1,0,0,0] and num_red_ml>500):
-                    elif barrel.price <= 500:
-                        if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
+
+                    if gold <= 500:
+                        if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000*ml_capacity) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000*ml_capacity) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000*ml_capacity):
                             continue
                         else:
-                            if total_ml+barrel.ml_per_barrel<10000*ml_capacity:
                                     purchase_plan.append({
                                         "sku": barrel.sku,
                                         "quantity": 1
                                     })
                                     total_ml +=barrel.ml_per_barrel
                                     gold -=barrel.price
-                    else:
-                        if (barrel.potion_type == [1,0,0,0] and num_red_ml>2000) or (barrel.potion_type == [0,1,0,0] and num_green_ml>2000) or (barrel.potion_type == [0,0,1,0] and num_blue_ml>2000):
-                            continue
-                        elif barrel.price<=(gold//2):
-                            if total_ml+barrel.ml_per_barrel<10000*ml_capacity:
+
+                    elif gold>500 and gold<1100:
+                        if barrel.sku[:6] == "MEDIUM":
+                           
                                 purchase_plan.append({
                                     "sku": barrel.sku,
                                     "quantity": 1
@@ -141,6 +134,18 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                             
                         else: 
                             continue
+
+                    elif gold>=1100:
+                        if barrel.sku[:5] == "LARGE":
+                            purchase_plan.append({
+                                "sku": barrel.sku,
+                                "quantity": 1
+                            })
+                            total_ml +=barrel.ml_per_barrel
+                            gold -=barrel.price
+                        else:
+                             continue
+
     print(wholesale_catalog)
     return purchase_plan
 

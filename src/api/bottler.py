@@ -111,7 +111,7 @@ def get_bottle_plan():
         if ml_inventory:
             num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = ml_inventory    
 
-        while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>200 and potion_inventory<50*potion_capacity:
+        while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>400 and potion_inventory<50*potion_capacity:
 
             if num_red_ml>=20 and num_blue_ml>=20 and num_green_ml>=20 and whites<(15*potion_capacity):
 
