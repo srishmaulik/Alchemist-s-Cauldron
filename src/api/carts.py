@@ -96,7 +96,7 @@ def search_orders(
 
         # Apply pagination
         base_query += f" LIMIT {page_size} OFFSET {offset}"
-
+        print(f"search {base_query}")
         # Execute the SQL query
         search_results = connection.execute(sqlalchemy.text(base_query), {"customer_name": f"%{customer_name}%", "potion_sku": f"%{potion_sku}%"})
 

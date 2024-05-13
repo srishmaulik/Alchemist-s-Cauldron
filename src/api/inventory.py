@@ -14,12 +14,7 @@ router = APIRouter(
     tags=["inventory"],
     dependencies=[Depends(auth.get_api_key)],
 )
-initial_potion_capacity = 1
-initial_ml_capacity =1
-def reset_globals():
-    global initial_ml_capacity, initial_potion_capacity
-    initial_ml_capacity=1
-    initial_potion_capacity = 1
+
 
 @router.get("/audit")
 def get_inventory():
@@ -54,7 +49,7 @@ def get_capacity_plan():
     """
 
     with db.engine.begin() as connection:
-        global initial_potion_capacity, initial_ml_capacity
+        
         num_potions_query = sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries")
         num_potions_result = connection.execute(num_potions_query).scalar()
         ml_in_barrels_query = sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")
