@@ -136,7 +136,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                             continue
 
                     elif gold>=1100:
-                        if barrel.sku[:5] == "LARGE":
+                        if barrel.sku[:5] == "LARGE" or barrel.sku[:6] == "MEDIUM":
                             purchase_plan.append({
                                 "sku": barrel.sku,
                                 "quantity": 1
