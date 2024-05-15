@@ -81,7 +81,7 @@ def get_bottle_plan():
     with db.engine.begin() as connection:
          # Fetch the current inventory of green ml from the global inventory table
         ml_inventory = connection.execute(sqlalchemy.text("SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(dark_ml) FROM barrel_ledgers")).fetchone()
-        potion_inventory = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries")).scalar_one()
+        potion_inventory = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(quantity),0) FROM potion_ledger_entries")).scalar_one()
         capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
         ml_capacity, potion_capacity = capacities
         
