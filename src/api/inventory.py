@@ -34,7 +34,7 @@ def get_inventory():
         # Construct the response
         inventory = {
             "number_of_potions": num_potions_result,
-            "ml_in_barrels":  ml_in_barrels_result[0]+ ml_in_barrels_result[1]+ ml_in_barrels_result[2]+ml_in_barrels_query[3],    
+            "ml_in_barrels":  ml_in_barrels_result[0]+ ml_in_barrels_result[1]+ ml_in_barrels_result[2]+ml_in_barrels_result[3],    
             "gold": gold_result
         }
 
