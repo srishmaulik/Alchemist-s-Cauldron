@@ -117,6 +117,7 @@ def get_bottle_plan():
             num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = ml_inventory    
 
         while num_red_ml+num_green_ml+num_blue_ml+num_dark_ml>400 and potion_inventory<50*potion_capacity:
+            change = 0
 
             if num_red_ml>=20 and num_blue_ml>=20 and num_green_ml>=20 and whites<(15*potion_capacity):
 
@@ -128,6 +129,7 @@ def get_bottle_plan():
                     potion_inventory+=1
                     whites+=1
                     potion_data["Treble"]+=1
+                    change +=1
 
                 elif num_red_ml>=20 and num_blue_ml>=40 and num_green_ml>=40 and potion_data["Whitey_Houston"]<10:
                     plan["Whitey_Houston"][1] += 1
@@ -137,6 +139,7 @@ def get_bottle_plan():
                     potion_inventory+=1
                     whites+=1
                     potion_data["Whitey_Houston"]+=1
+                    change +=1
 
                 elif num_red_ml>=40 and num_green_ml>=40 and num_blue_ml>=20 and potion_data["Whitey_tidy"]<10:
                     plan["Whitey_tidy"][1] += 1
@@ -146,7 +149,7 @@ def get_bottle_plan():
                     potion_inventory+=1
                     whites+=1
                     potion_data["Whitey_tidy"] +=1
-
+                    change +=1
                 elif num_red_ml>=40 and num_blue_ml>=40 and num_green_ml>=20 and potion_data["white_boi"]<10:
                     plan["white_boi"][1] += 1
                     num_blue_ml-=40
@@ -155,6 +158,7 @@ def get_bottle_plan():
                     potion_inventory+=1
                     whites+=1
                     potion_data["white_boi"]+=1
+                    change+=1
             else:
     
                 if num_dark_ml>=100 and potion_data["Dark_knight"]<=5:
@@ -162,47 +166,49 @@ def get_bottle_plan():
                     num_dark_ml-=100
                     potion_inventory+=1
                     potion_data["Dark_knight"]+=1
-
+                    change+=1
                 elif num_red_ml >= 50 and num_green_ml>=50 and potion_data["Brownie"]<=15*potion_capacity:
                     plan["Brownie"][1] += 1
                     num_green_ml-=50
                     num_red_ml-=50
                     potion_inventory+=1
                     potion_data["Brownie"]+=1
-
+                    change+=1
                 elif num_red_ml >= 50 and num_blue_ml>=50 and potion_data["Purplie"]<=15*potion_capacity:
                     plan["Purplie"][1] += 1
                     num_blue_ml-=50
                     num_red_ml-=50
                     potion_inventory+=1
                     potion_data["Purplie"]+=1
-                
+                    change+=1
                 elif num_green_ml>=50 and num_blue_ml>=50 and potion_data["Yellow_mellow"]==-1:
                     plan["Yellow_mellow"][1] += 1
                     num_green_ml-=50
                     num_blue_ml-=50
                     potion_inventory+=1
                     potion_data["Yellow_mellow"]+=1
-                
+                    change+=1
                 
                 elif num_red_ml>=100 and potion_data["Reddy_teddy"]<=15*potion_capacity:
                     plan["Reddy_teddy"][1] += 1
                     num_red_ml-=100
                     potion_inventory+=1
                     potion_data["Reddy_teddy"]+=1
-
+                    change+=1
                 elif num_green_ml>=100 and potion_data["Greeny_dreamy"]<=15*potion_capacity:
                     plan["Greeny_dreamy"][1] += 1
                     num_green_ml-=100
                     potion_inventory+=1
                     potion_data["Greeny_dreamy"]+=1
-
+                    change+=1
                 elif num_blue_ml>=100 and potion_data["Blue_berry"]<=15*potion_capacity:
                     plan["Blue_berry"][1] += 1
                     num_blue_ml-=100
                     potion_inventory+=1
                     potion_data["Blue_berry"]+=1
-            
+                    change+=1
+            if change == 0:
+                break    
             
     final_plan = [{"potion_type": res[0], "quantity": res[1]} for res in plan.values() if res[1] > 0]
 
