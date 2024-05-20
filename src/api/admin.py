@@ -46,7 +46,7 @@ def reset():
         ).scalar_one()
 
         account_id_result = connection.execute(account_id_query, {"customer_name": "Shop Keeper"}).fetchone()
-        reset_globals()
+        
         if account_id_result:
             account_id = account_id_result[0]
             
