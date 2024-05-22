@@ -105,7 +105,7 @@ def deliver_capacity_plan(capacity_purchase: CapacityPurchase, order_id: int):
             connection.execute(sqlalchemy.text("UPDATE global_inventory SET ml_capacity = :ml_capacity"), {"ml_capacity": capacity_purchase.ml_capacity})
             gold_to_be_subtracted += (capacity_purchase.ml_capacity-initial_ml_capacity)*1000
         if capacity_purchase.potion_capacity>1:
-            connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = :potion_capacity"))
+            connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = :potion_capacity"),{'potion_capacity': capacity_purchase.potion_capacity})
             gold_to_be_subtracted += (capacity_purchase.potion_capacity-initial_potion_capacity)*1000
 
 
