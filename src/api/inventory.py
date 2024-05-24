@@ -33,9 +33,9 @@ def get_inventory():
 
         # Construct the response
         inventory = {
-            "number_of_potions": num_potions_result,
-            "ml_in_barrels":  ml_in_barrels_result[0]+ ml_in_barrels_result[1]+ ml_in_barrels_result[2]+ml_in_barrels_result[3],    
-            "gold": gold_result
+            "number_of_potions": 1,
+            "ml_in_barrels":  1,
+            "gold": 0
         }
 
     return inventory
@@ -77,8 +77,8 @@ def get_capacity_plan():
         # Calculate the maximum number of potions and ml of potion the shop can currently store
         
     return {
-        "potion_capacity": potion_capacity,
-        "ml_capacity": ml_capacity
+        "potion_capacity": 0,
+        "ml_capacity": 0
         }
 
 class CapacityPurchase(BaseModel):
@@ -92,42 +92,42 @@ def deliver_capacity_plan(capacity_purchase: CapacityPurchase, order_id: int):
     Start with 1 capacity for 50 potions and 1 capacity for 10000 ml of potion. Each additional 
     capacity unit costs 1000 gold.
     """
-    gold_to_be_subtracted = 0
-    with db.engine.begin() as connection:
-        # Get current gold balance from the account ledger
+    # gold_to_be_subtracted = 0
+    # with db.engine.begin() as connection:
+    #     # Get current gold balance from the account ledger
         
-        gold_query = "SELECT SUM(change) FROM account_ledger_entries"
-        gold_balance = connection.execute(sqlalchemy.text(gold_query)).scalar()
+    #     gold_query = "SELECT SUM(change) FROM account_ledger_entries"
+    #     gold_balance = connection.execute(sqlalchemy.text(gold_query)).scalar()
        
-        capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
-        initial_ml_capacity, initial_potion_capacity = capacities
-        if capacity_purchase.ml_capacity>1:
-            connection.execute(sqlalchemy.text("UPDATE global_inventory SET ml_capacity = :ml_capacity"), {"ml_capacity": capacity_purchase.ml_capacity})
-            gold_to_be_subtracted += (capacity_purchase.ml_capacity-initial_ml_capacity)*1000
-        if capacity_purchase.potion_capacity>1:
-            connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = :potion_capacity"),{'potion_capacity': capacity_purchase.potion_capacity})
-            gold_to_be_subtracted += (capacity_purchase.potion_capacity-initial_potion_capacity)*1000
+    #     capacities = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM global_inventory")).fetchone()
+    #     initial_ml_capacity, initial_potion_capacity = capacities
+    #     if capacity_purchase.ml_capacity>1:
+    #         connection.execute(sqlalchemy.text("UPDATE global_inventory SET ml_capacity = :ml_capacity"), {"ml_capacity": capacity_purchase.ml_capacity})
+    #         gold_to_be_subtracted += (capacity_purchase.ml_capacity-initial_ml_capacity)*1000
+    #     if capacity_purchase.potion_capacity>1:
+    #         connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = :potion_capacity"),{'potion_capacity': capacity_purchase.potion_capacity})
+    #         gold_to_be_subtracted += (capacity_purchase.potion_capacity-initial_potion_capacity)*1000
 
 
 
-        # Update the gold balance in the account ledger
-        if gold_balance>=gold_to_be_subtracted:
-            sql_update_gold = f"""
-            INSERT INTO account_transactions (created_at, description)
-            VALUES (:created_at, :description)
-            RETURNING id
-            """
-            transaction_id = connection.execute(
-                sqlalchemy.text(sql_update_gold),
-                {"created_at": datetime.datetime.now(), "description": "Capacity purchase"}
-            ).scalar_one()
+    #     # Update the gold balance in the account ledger
+    #     if gold_balance>=gold_to_be_subtracted:
+    #         sql_update_gold = f"""
+    #         INSERT INTO account_transactions (created_at, description)
+    #         VALUES (:created_at, :description)
+    #         RETURNING id
+    #         """
+    #         transaction_id = connection.execute(
+    #             sqlalchemy.text(sql_update_gold),
+    #             {"created_at": datetime.datetime.now(), "description": "Capacity purchase"}
+    #         ).scalar_one()
 
-            connection.execute(
-                sqlalchemy.text(
-                    "INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
-                    "VALUES (:account_id, :transaction_id, :change)"
-                ),
-                {"account_id": 1, "transaction_id": transaction_id, "change": -gold_to_be_subtracted}
-            )
+            # connection.execute(
+            #     sqlalchemy.text(
+            #         "INSERT INTO account_ledger_entries (account_id, account_transaction_id, change) "
+            #         "VALUES (:account_id, :transaction_id, :change)"
+            #     ),
+            #     {"account_id": 1, "transaction_id": transaction_id, "change": 0}
+            # )
 
     return "OK"
